@@ -35,6 +35,8 @@
    )
 )
 
+
+
 ;testing to see if checking if sparse works
 
 (display(is-sparse '(1 2 3 0 0)))
@@ -48,3 +50,4 @@
 (newline)
 (display(is-sparse (to-sparse '(1 2 3 0 0) 0)))
 (newline)
+
