@@ -1,0 +1,9 @@
+#lang racket
+
+(define (is-dense? x)
+  (if (list? (car x))
+      false
+      true))
+
+(is-dense? (list 1 2 3 4))
+
