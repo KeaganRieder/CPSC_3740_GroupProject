@@ -11,6 +11,7 @@
   ;is it empty
  (if (null? x)
      null
+
      ;its not empty, lets assume it is sparse, is the second value of the first list the value we are curently looking for?
      (if (equal? y (car (cdr (car x))))
          ;it is, add the value to the list
