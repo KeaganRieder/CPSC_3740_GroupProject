@@ -144,6 +144,27 @@
     defining function to perform mathmatical operation between polynomials
 ############################################################################
 |#
+; takes a polynomial p(x) and a value k, returns the result of p(k).
+; only works for sparse
+(define (eval polynomial k)
+
+    (cond
+        ; check if empty
+        ((empty? polynomial) '(0))
+        ; check if 0
+        ((is-zero? polynomial ) '(0))
+        ; check if  not sparse and then converting
+        ((not (is-sparse polynomial)) (eval (to-sparse polynomial 0) k))
+
+        ; evaluating
+        (else
+            (apply + (map (lambda (term)
+                (* (first term) (expt k (second term))))
+                polynomial
+            ))
+        )
+    )
+)
 
 #| 
 ############################################################################
@@ -192,4 +213,10 @@
 (newline)
 
 ; testing coeff
-(coeff (list (list 1 0) (list 2 1) (list 3 2) (list 4 3)) 4) 
+(coeff (list (list 1 0) (list 2 1) (list 3 2) (list 4 3)) 4) ; need a check 
+
+;testing eval
+(display(eval  '(1 2 3 0 0) 2)) ; (2)^0 + 2(2)^1 + 3(2)^2 = 17
+(newline)
+(display(eval  '((1 0) (2 1) (3 2) (9 8)) 2)) ; (2)^0 + 2(2)^1 + 3(2)^2 + 9(2)^ 8 = 2321
+(newline)
