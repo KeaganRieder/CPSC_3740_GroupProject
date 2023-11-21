@@ -24,7 +24,7 @@
 |#
 
 ; checks if polynomial is sparse (has sub list)
-(define(is-sparse polynomial)
+(define(is-sparse? polynomial)
 
     (if (empty? polynomial)
         #false
@@ -40,54 +40,69 @@
 ; convert a polynomal into being sparse
 
 (define(to-sparse polynomial index)
+    ; checking if polynomial is already sparse
+    ( if (is-sparse? polynomial) 
+        polynomial
+        ; it isn't so convert
+        (make-sparse polynomial index)
+    )
+    
+)
 
-   (cond
-        ; checking if polynomial is already sparse
-        ((is-sparse polynomial) polynomial)
+;utility function for to-sparse
+(define (make-sparse polynomial index)
+
+    (cond
         ;check if it is empty, and return an empty list
         ((empty? polynomial) '())
 
         ;check if  element is equail to 0
-        ((= (car polynomial) 0) (to-sparse (cdr polynomial) (add1 index)))
+        ((= (car polynomial) 0) (make-sparse (cdr polynomial) (add1 index)))
         ;otherwise run throuh the rest
         (else 
         (cons (list (car polynomial) index)
-            (to-sparse (cdr polynomial) (add1 index)))
+            (make-sparse (cdr polynomial) (add1 index)))
         )        
    )
 )
 
 ; x is a list, returns false if list is sparse and true if list is dense
 (define (is-dense? x)
-  ;is it a list of lists?
+  ;is first elment a sub list in a list?
   (if (list? (car x))
       false
       true))
 
 ; converts from sparse to dense  x must be a sparse list or it will error, set y to 0 for recursion
 (define (to-dense x y)
-  ;is it empty
- (if (null? x)
-     null
-
-     ;its not empty, lets assume it is sparse, is the second value of the first list the value we are curently looking for?
-     (if (equal? y (car (cdr (car x))))
-         ;it is, add the value to the list
-         (append (list (list-ref (car x) 0)) (to-dense (cdr x) (+ 1 y)))
-         ;its not add 0 to the list and look for the next value
-         (append (list 0) (to-dense x (+ 1 y))))))
-
-; checks if its dense then makes it dense if it is not already dense
-(define (make-dense x)
-  (if (is-dense? x)
+    ; check if x is dense
+    (if (is-dense? x)
+      ; x is dense so just retunr it
       x
-      (to-dense x 0)))
+      ; x isn't dense so convert
+      (make-dense x y))
+)
+
+; utility function for to dense, that converts th epolynomial to a dense type
+(define (make-dense x y)
+    
+    ; is it empty
+    (if (null? x)
+        null
+
+        ;its not empty, lets assume it is sparse, is the second value of the first list the value we are curently looking for?
+        (if (equal? y (car (cdr (car x))))
+            ;it is, add the value to the list
+            (append (list (list-ref (car x) 0)) (make-dense (cdr x) (+ 1 y)))
+            ;its not add 0 to the list and look for the next value
+            (append (list 0) (make-dense x (+ 1 y)))))  
+)
 
 ; check if the input is the zero polynomial
 ; works for both types of polynomials
 (define(is-zero? polynomial)
     
-    (if (is-sparse polynomial)
+    (if (is-sparse? polynomial)
         ; polynomial is sparse, get inner list
         (is-zero? (car polynomial ))
 
@@ -109,7 +124,7 @@
 (define (coeff x y)
   ;round about way of asking is y less then or equal to length x
   (if (negative? (- y (length x)))
-              (list-ref (make-dense x) y)
+              (list-ref (to-dense x) y)
               ;returns false if y will not work
               false))
 
@@ -125,7 +140,7 @@
         ;checking if input polynomial is empty
         ((is-zero? polynomial) -inf.0)
         ; read check if the polynomial is dense, if so convert to sparse
-        ((not (is-sparse polynomial)) 
+        ((not (is-sparse? polynomial)) 
         ; read the last element in a spare polynomail which is a list
         ; then reads the last element in that list to get the degree
            (last (last (to-sparse polynomial 0)))
@@ -144,6 +159,7 @@
     defining function to perform mathmatical operation between polynomials
 ############################################################################
 |#
+
 ; takes a polynomial p(x) and a value k, returns the result of p(k).
 ; only works for sparse
 (define (eval polynomial k)
@@ -154,7 +170,7 @@
         ; check if 0
         ((is-zero? polynomial ) '(0))
         ; check if  not sparse and then converting
-        ((not (is-sparse polynomial)) (eval (to-sparse polynomial 0) k))
+        ((not (is-sparse? polynomial)) (eval (to-sparse polynomial 0) k))
 
         ; evaluating
         (else
@@ -166,15 +182,86 @@
     )
 )
 
-; takes two polynomials and adds them
+; takes two polynomials and adds them broken atm need to fix
+
 (define (add x y)
-  (if (null? x)
-      (if (null? y)
-          null
-          (append (list (car (make-dense y))) (add  x (cdr (make-dense y)))))
-      (if (null? y)
-          (append (list (car (make-dense x))) (add (cdr (make-dense x)) y))
-          (append (list (+ (car (make-dense x)) (car (make-dense y)))) (add (cdr (make-dense x)) (cdr (make-dense y)))))))
+    ; check if both polynomials are sparse
+    (if (and (is-sparse? x) (is-sparse? y))
+        ; both are sparse polynomials
+        (to-sparse(add-Poly (to-dense x 0) (to-dense y 0)) 0)
+    
+        ; one of them isn't convert which ever one is 
+        ; sparse to be dense and call utility function to calcualte addtion
+        (add-Poly (to-dense x 0) (to-dense y 0)))
+
+)
+
+; utility function to handle adding to polynomials together
+(define (add-Poly x y)
+    
+    (cond
+        ;check if both lists are empty
+        ((and (empty? x) (empty? y) ) '())
+
+        ;x and y are both not empty, see if x is
+        ((empty? x) (append (list (car x)) ( add-Poly x (cdr y))))
+
+        ;x isn't empty, so see check if y is empty
+        ((empty? y) 
+        
+            (append (list (car  x)) (add-Poly (cdr x)  y))
+        )
+
+        ; otherwise add
+        (else 
+
+            (append (list (+ (car x ) (car y)))  (add-Poly (cdr x) (cdr y)))
+        )
+    )
+
+)
+
+
+
+; subtracts polynomial y from polynomial X
+; first checks the types of poly nomials
+; (define (subtract x y)
+;     ; checking type of polynomial
+;     (cond
+;         ; check if x and y are sparse
+;         ((and (is-sparse? x) (is-sparse? x))
+;             ; both polynomials are sparse
+;             (sparse-subtract x y)
+        
+;         )
+
+;         ; check x and y are dense 
+;          ((and (is-dense? x) (is-dense? x))
+;             ; both polynomials are sparse
+;             (dense-subtract x y)
+        
+;         )
+;         ; both x and y aren't the same type of polynomial so convert
+;         ; which ever one isn't to dense
+;         (else 
+;             (dense-subtract x y)
+        
+;         )
+    
+;     )
+; )
+
+; subtract utility function for subtracting sparse polynomials
+; (define (sparse-subtract x y)
+
+; )
+
+; ; subtract utility function for subtracting dense polynomials
+; (define (dense-subtract x y)
+
+; )
+
+
 
 #| 
 ############################################################################
@@ -185,10 +272,10 @@
 ; sparse poly used for testing: ((1 0) (2 1) (3 2) (9 8))
 ; dense poly used for testing:  (1 2 3 0 0)
 
-;testing is-sparse
-(display(is-sparse  '(1 2 3 0 0))) ; return false
+;testing is-sparse?
+(display(is-sparse?  '(1 2 3 0 0))) ; return false
 (newline)
-(display(is-sparse  '((1 0) (2 1) (3 2) (9 8)))) ; return true
+(display(is-sparse?  '((1 0) (2 1) (3 2) (9 8)))) ; return true
 (newline)
 
 ; testing to-sparse
@@ -196,7 +283,7 @@
 (newline)
 (display(to-sparse  '(1 2 3 0 0) 0)) ; convertss
 (newline)
-(display(is-sparse (to-sparse '(1 2 3 0 0) 0))) ; returns t
+(display(is-sparse? (to-sparse '(1 2 3 0 0) 0))) ; returns t
 (newline)
 
 ; testing is-dense
@@ -232,5 +319,10 @@
 (newline)
 
 ;testing add
-(add (list 1 2 3) (list 3 2 1)) ; 1+3 = 4 2+2 = 4 1+3 = 4
-(add (list (list 1 1) (list 2 2) (list 3 3)) (list (list 1 0) (list 2 1) (list 3 2))) ; 1+0 = 1 1+2 = 3 3+2 = 5 3+0 = 0
+(add '(1 2 3) '(3 2 1)) ; 1+3 = 4, 2+2 = 4, 1+3 = 4 = ( 4 4 4 )
+
+(add '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2))) ; 1+0 = 1, 1+2 = 3, 3+2 = 5, 3+0 = 0 = ((1 0) (3 1) (5 2) (3 3))
+
+(add '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)) ; 1+3 = 4, 2+2 = 4, 3+3 = 6, 6 + 0 = 6 = (4 4 6 0 6 )
+
+;testing sub
