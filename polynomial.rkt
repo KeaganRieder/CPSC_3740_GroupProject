@@ -221,46 +221,24 @@
 
 )
 
-
-
 ; subtracts polynomial y from polynomial X
 ; first checks the types of poly nomials
-; (define (subtract x y)
-;     ; checking type of polynomial
-;     (cond
-;         ; check if x and y are sparse
-;         ((and (is-sparse? x) (is-sparse? x))
-;             ; both polynomials are sparse
-;             (sparse-subtract x y)
-        
-;         )
-
-;         ; check x and y are dense 
-;          ((and (is-dense? x) (is-dense? x))
-;             ; both polynomials are sparse
-;             (dense-subtract x y)
-        
-;         )
-;         ; both x and y aren't the same type of polynomial so convert
-;         ; which ever one isn't to dense
-;         (else 
-;             (dense-subtract x y)
-        
-;         )
+(define (subtract x y)
+    ; check if both polynomials are sparse
+    (if (and (is-sparse? x) (is-sparse? y))
+        ; both are sparse polynomials
+        (to-sparse (add-Poly (to-dense x 0) (invert-coef (to-dense y 0))) 0)
     
-;     )
-; )
+        ; one of them isn't convert which ever one is 
+        ; sparse to be dense and call utility function to calcualte addtion
+        (add-Poly (to-dense x 0) (invert-coef (to-dense y 0))))
+)
 
-; subtract utility function for subtracting sparse polynomials
-; (define (sparse-subtract x y)
-
-; )
-
-; ; subtract utility function for subtracting dense polynomials
-; (define (dense-subtract x y)
-
-; )
-
+; utility function to make a ploynomials coefficent negative
+; primarly allows fo rthe add-Poly fucntion to be reused
+(define (invert-coef polynoimal)
+    (map (lambda (x) (* -1 x)) polynoimal)
+)
 
 
 #| 
@@ -319,10 +297,62 @@
 (newline)
 
 ;testing add
-(add '(1 2 3) '(3 2 1)) ; 1+3 = 4, 2+2 = 4, 1+3 = 4 = ( 4 4 4 )
+#|
+    x^0 = 1 + 3 =  4
+    x^1 = 2 + 2 = 4
+    x^2 = 3 + 1 = 4
+    = (4 4 4)
+|#
+(add '(1 2 3) '(3 2 1)) 
 
-(add '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2))) ; 1+0 = 1, 1+2 = 3, 3+2 = 5, 3+0 = 0 = ((1 0) (3 1) (5 2) (3 3))
+#|
+    x^0 = 1 + 0 =  1
+    x^1 = 1 + 2 = 3
+    x^2 = 3 + 2 = 3
+    x^3 = 3 + 0 = 3
+    = ((1, 0) (3 1) (5 2) (3 0))
+|#
+(add '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2))) 
 
-(add '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)) ; 1+3 = 4, 2+2 = 4, 3+3 = 6, 6 + 0 = 6 = (4 4 6 0 6 )
+#|
+    x^0 = 3 + 0 =  3
+    x^1 = 1 + 2 = 3
+    x^2 = 2 + 1 = 3
+    x^3 = 3 + 0 = 3
+    x^4 = 0
+    x^5 = 6
+    = ((3 3 3 3 0 6 )
+|#
+(add '((1 1) (2 2) (3 3) (6 5)) '(3 2 1))
 
 ;testing sub
+
+#|
+    x^0 = 1 - 3 =  -2
+    x^1 = 2 - 2 = 0
+    x^2 = 3 - 1 = -2
+    = (-2 0 -2)
+|#
+(subtract '(1 2 3) '(3 2 1)) 
+
+#|
+    x^0 = 1 - 0 =  1
+    x^1 = 1 - 2 = -2
+    x^2 = 3 - 2 = 1
+    x^3 = 3 - 0 = 3
+    = ((1, 0) (-2 1) (1 2) (3 0))
+|#
+(subtract '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2)))
+
+#|
+    x^0 = 0 - 3 =  3
+    x^1 = 1 - 2 = -1
+    x^2 = 3 - 1 = 2
+    x^3 = 3 - 0 = 3
+    x^4 = 0
+    x^5 = 6
+    = (-3 -1 1 3 0 6 )
+|#
+(subtract '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)) 
+
+; testing multiply
