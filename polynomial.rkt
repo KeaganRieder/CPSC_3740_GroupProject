@@ -248,10 +248,11 @@
 )
 ; helper function to multiply polynomial term x by term y
 (define (multiply-terms x y)
-     (list
+   
+    (list (list
         (multiply-coeffs (car x) (car y))
         ;cadrmeans get character of the next element form current point
-       ; (increase-power (cadr x) (cadr y)) 
+        (increase-power (cadr x) (cadr y)) )
     )
 )
 
@@ -266,7 +267,7 @@
             (append (multiply-terms (car x) y) (apply-y-to-x (cdr x) y)))
         ;still not at end of polynomial so still able to apply y to x
         (else
-           (append (multiply-terms (car x) y) (apply-y-to-x (cdr x) y))
+           (append  (multiply-terms (car x) y) (apply-y-to-x (cdr x) y))
         ))
 )
 
@@ -277,16 +278,15 @@
         ((empty? y) '())
         ; check if next elemnt is
         ((empty? (cdr y)) 
-            (append (apply-y-to-x x (car y)) (multiply-poly x (cdr y))))
+        ;(add x y)
+            (append 
+            (apply-y-to-x x (car y)) ; 
+            (multiply-poly x (cdr y)))) ; gets next
         ;still not at end of polynomial so still able to apply y to x
         (else
             (append (apply-y-to-x x (car y)) (multiply-poly x (cdr y))))
     )
 )
-
-;helper function to combine like terms
-
-;todo
 
 ; function used to check types of polynomials pased in and convert the
 ; to the correct type following multipling
@@ -441,9 +441,16 @@
 ; testing multiply-polys
 (display "test case for multiply?")
 (newline)
-#|
-   ((4  2) (-1 1) (2 1))
-    2x^3 - 3x^2 + 5x^3 * 4x^2 - x^2 + 2x^3
+
+#|   
+   (2x + 2x^3) * 4x^2 = 8x^3+8x^5 
 |#
-(display(multiply  '((2  3) (-3 1) (5 2)) '((4  2) (-1 1) (2 1))))
+(display(multiply  '((2  1) (2  3)) '((4  2))))
+(newline)
+
+#|
+   
+   (2x + 2x^3) * (4x^2 + 3x^4) = 8x^3+ 14x^5 + 6x^7
+|#
+(display(multiply  '((2  1) (2  3)) '((4  2) (3 4))))
 (newline)
