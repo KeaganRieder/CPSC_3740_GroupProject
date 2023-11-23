@@ -262,29 +262,21 @@
     (cond
         ; check if y is empty
         ((empty? x) '())
-        ; check if next elemnt is
-        ((empty? (cdr x)) 
-            (append (multiply-terms (car x) y) (apply-y-to-x (cdr x) y)))
         ;still not at end of polynomial so still able to apply y to x
         (else
            (append  (multiply-terms (car x) y) (apply-y-to-x (cdr x) y))
         ))
 )
 
-; helper function 
+; helper function to move through the terms in polynomial y 
 (define (multiply-poly x y)
+   
     (cond
         ; check if y is empty
-        ((empty? y) '())
-        ; check if next elemnt is
-        ((empty? (cdr y)) 
-        ;(add x y)
-            (append 
-            (apply-y-to-x x (car y)) ; 
-            (multiply-poly x (cdr y)))) ; gets next
+        ((empty? y)  '())
+
         ;still not at end of polynomial so still able to apply y to x
-        (else
-            (append (apply-y-to-x x (car y)) (multiply-poly x (cdr y))))
+        (else (append(apply-y-to-x x (car y)) (multiply-poly x (cdr y))))
     )
 )
 
@@ -306,6 +298,8 @@
         )
     )
 )
+
+;todo make it so like terms are combined
 
 #| 
 ############################################################################
