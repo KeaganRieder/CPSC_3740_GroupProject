@@ -185,14 +185,31 @@
 ; takes two polynomials and adds them broken atm need to fix
 
 (define (add x y)
-    ; check if both polynomials are sparse
-    (if (and (is-sparse? x) (is-sparse? y))
-        ; both are sparse polynomials
-        (to-sparse(add-Poly (to-dense x 0) (to-dense y 0)) 0)
-    
-        ; one of them isn't convert which ever one is 
-        ; sparse to be dense and call helper function to calcualte addtion
-        (add-Poly (to-dense x 0) (to-dense y 0)))
+
+    (cond
+        ; check if both list is empty
+        ((and (empty? x) (empty? y))
+            '()
+        )
+        ;checking either list is empty
+        ((or (empty? x) (empty? y))
+            (if (empty? x)
+                y ; x is empty so return y as result
+                x ; y is empty so return x as result
+            )
+        )
+        ;neither are so check type
+
+        ((and (is-sparse? x) (is-sparse? y))
+            ; both are sparse polynomials
+            (to-sparse(add-Poly (to-dense x 0) (to-dense y 0)) 0)
+        )
+
+        (else
+            ; one of them isn't convert which ever one is 
+            ; sparse to be dense and call helper function to calcualte addtion
+            (add-Poly (to-dense x 0) (to-dense y 0)))
+        )
 )
 
 ; helper function to handle adding to polynomials together
@@ -202,7 +219,8 @@
         ((and (empty? x) (empty? y) ) '())
 
         ;x and y are both not empty, see if x is
-        ((empty? x) (append (list (car x)) ( add-Poly x (cdr y))))
+        ((empty? x)
+            (append (list (car y)) ( add-Poly x (cdr y))))
 
         ;x isn't empty, so see check if y is empty
         ((empty? y) 
@@ -270,14 +288,14 @@
 
 ; helper function to move through the terms in polynomial y 
 (define (multiply-poly x y)
-   
-    (cond
-        ; check if y is empty
-        ((empty? y)  '())
-
-        ;still not at end of polynomial so still able to apply y to x
-        (else (append(apply-y-to-x x (car y)) (multiply-poly x (cdr y))))
+    (if (> (length y) 1)
+        ( if (> (length y) 2) 
+            (append  (add (apply-y-to-x x (car y)) (multiply-poly x (cdr y))))
+            (append  (add (apply-y-to-x x (car y)) (apply-y-to-x x (cadr y))))
+        )
+        (append(apply-y-to-x x (car y)))
     )
+
 )
 
 ; function used to check types of polynomials pased in and convert the
@@ -298,8 +316,6 @@
         )
     )
 )
-
-;todo make it so like terms are combined
 
 #| 
 ############################################################################
@@ -401,6 +417,11 @@
 |#
 (display(add '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)))
 (newline)
+
+;should return none empty list
+(display(add '((1 1) (2 2) (3 3) (6 5)) '()))
+(newline)
+
 ;testing sub
 (display "test case for sub")
 (newline)
@@ -412,6 +433,7 @@
 |#
 (display(subtract '(1 2 3) '(3 2 1)) )
 (newline)
+
 #|
     x^0 = 1 - 0 =  1
     x^1 = 1 - 2 = -2
@@ -421,6 +443,7 @@
 |#
 (display(subtract '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2))))
 (newline)
+
 #|
     x^0 = 0 - 3 =  3
     x^1 = 1 - 2 = -1
@@ -432,6 +455,7 @@
 |#
 (display(subtract '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)) )
 (newline)
+
 ; testing multiply-polys
 (display "test case for multiply?")
 (newline)
@@ -443,8 +467,14 @@
 (newline)
 
 #|
-   
    (2x + 2x^3) * (4x^2 + 3x^4) = 8x^3+ 14x^5 + 6x^7
 |#
 (display(multiply  '((2  1) (2  3)) '((4  2) (3 4))))
+(newline)
+
+#|
+   (2 + 1x + 2x^2 + 3x^3)(4 + 2x + 3x^2 + 4X^3)=
+   12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
+|#
+(display(to-sparse(multiply  '(2 1 2 3) '(4  2 3 4))0))
 (newline)
