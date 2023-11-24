@@ -317,6 +317,36 @@
     )
 )
 
+
+;function used to find the quotient of p(x) and q(x)
+;side note, looking at this mess makes my eyes burn
+(define (quotient polyOne polyTwo x)
+ ; is this still a polynomial
+  (if (list? polyOne)
+      ;make it an int
+      (quotient (eval polyOne x) (eval polyTwo x) 0)
+      ;is poly one negative?
+      (if(negative? polyOne)
+         ;are both poly's negative?
+         (if(negative? polyTwo)
+            ; now that we know how to deal with it, can we get any closer to 0?
+            (if(positive? (- polyOne polyTwo))
+               x
+               (quotient (- polyOne polyTwo) polyTwo (+ x 1)))
+            (if(positive? (+ polyOne polyTwo))
+               x
+               (quotient (+ polyOne polyTwo) polyTwo (- x 1))))
+         ;poly one is positive, is polytwo negative?
+         (if(negative? polyTwo)
+            ;now that we know how to deal with it, can we get closer to 0?
+            (if(negative? (+ polyOne polyTwo))
+               x
+               (quotient (+ polyOne polyTwo) polyTwo (- x 1)))
+            (if(negative? (- polyOne polyTwo))
+               x
+               (quotient (- polyOne polyTwo) polyTwo (+ x 1)))))))
+      
+      
 #| 
 ############################################################################
     Test Cases
@@ -477,4 +507,38 @@
    12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
 |#
 (display(to-sparse(multiply  '(2 1 2 3) '(4  2 3 4))0))
+(newline)
+#|
+  (5 + 1875)/ (5 + 50)
+  1880/55
+  34
+|#
+
+(display(quotient '((2 1) (3 4)) '((1 1) (2 2)) 5))
+(newline)
+#|
+  (5 + 1875)/ (-5 - 50)
+  1880/-55
+  -34
+|#
+
+(display(quotient '((2 1) (3 4)) '((-1 1) (-2 2)) 5))
+(newline)
+
+#|
+  (-5 - 1875)/ (5 + 50)
+  -1880/55
+  -34
+|#
+
+(display(quotient '((-2 1) (-3 4)) '((1 1) (2 2)) 5))
+(newline)
+
+#|
+  (-5 - 1875)/ (-5 - 50)
+  -1880/-55
+  34
+|#
+
+(display(quotient '((-2 1) (-3 4)) '((-1 1) (-2 2)) 5))
 (newline)
