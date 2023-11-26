@@ -320,3 +320,31 @@
             (if(negative? (- polyOne polyTwo))
                x
                (quotient (- polyOne polyTwo) polyTwo (+ x 1)))))))
+
+;function used to find the remainder of p(x) and q(x)
+;works the same as quotient, just returns remainder instead
+(define (remainder polyOne polyTwo x)
+ ; is this still a polynomial
+  (if (list? polyOne)
+      ;make it an int
+      (remainder (eval polyOne x) (eval polyTwo x) 0)
+      ;is poly one negative?
+      (if(negative? polyOne)
+         ;are both poly's negative?
+         (if(negative? polyTwo)
+            ; now that we know how to deal with it, can we get any closer to 0?
+            (if(positive? (- polyOne polyTwo))
+               polyOne
+               (remainder (- polyOne polyTwo) polyTwo x))
+            (if(positive? (+ polyOne polyTwo))
+               polyOne
+               (remainder (+ polyOne polyTwo) polyTwo  x)))
+         ;poly one is positive, is polytwo negative?
+         (if(negative? polyTwo)
+            ;now that we know how to deal with it, can we get closer to 0?
+            (if(negative? (+ polyOne polyTwo))
+               polyOne
+               (remainder (+ polyOne polyTwo) polyTwo x))
+            (if(negative? (- polyOne polyTwo))
+               polyOne
+               (remainder (- polyOne polyTwo) polyTwo  x))))))
