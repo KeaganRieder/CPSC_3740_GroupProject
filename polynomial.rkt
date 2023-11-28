@@ -294,7 +294,6 @@
     ))
 
 ;function used to find the quotient of p(x) and q(x)
-;side note, looking at this mess makes my eyes burn
 (define (quotient polyOne polyTwo x)
  ; is this still a polynomial
   (if (list? polyOne)
@@ -348,3 +347,42 @@
             (if(negative? (- polyOne polyTwo))
                polyOne
                (remainder (- polyOne polyTwo) polyTwo  x))))))
+
+; helper function of derivative that applys the power rule of a polynomial 
+; passed into it
+
+(define (power-rule x)
+    ;making sure to not pass back negatives
+    (cond 
+        ; if power is less then 0 becomes zero then just return empty list
+        ((< (- (cadr x) 1) 0)
+            '()
+        )
+        (else 
+            (list(list (* (car x) (cadr x))
+                (- (cadr x) 1)))) 
+    )
+)
+
+; finds the dervative of a polynomial  x
+; works for both sparse and dense representations of polynomials
+(define (derivative x)
+    (cond
+        ;check if polynomial is empty and or at it's end
+        ((empty? x) '())
+
+        ; check if sparse
+        ((is-sparse? x) 
+
+           (append (power-rule (car x)) (derivative (cdr x)))
+        )
+
+        ; not empty, or sparse meaning it is dense
+        (else
+            (to-dense (derivative (to-sparse x 0)) 0)
+        )
+
+    
+    )
+)
+
