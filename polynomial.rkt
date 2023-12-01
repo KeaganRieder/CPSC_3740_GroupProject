@@ -64,8 +64,8 @@
 (define (is-dense? x)
   ;is first elment a sub list in a list?
   (if (list? (car x))
-      false
-      true))
+      #false
+      #true))
 
 ; converts from sparse to dense  x must be a sparse list or it will error, set y to 0 for recursion
 (define (to-dense x y)
@@ -93,16 +93,21 @@
 ; check if the input is the zero polynomial
 ; works for both types of polynomials
 (define(is-zero? polynomial)
-    
-    (if (is-sparse? polynomial)
-        ; polynomial is sparse, get inner list
-        (is-zero? (car polynomial ))
 
-        ; polynomial isn't sparse so just check if current element (first) is 0
-        (if (zero?(car polynomial) )
-            #true
-            #false
-        )))
+    (if (empty? polynomial)
+        ;it's empty meaning zero
+        #t
+        ;not empty
+        (if (is-sparse? polynomial) 
+            ; polynomial is sparse, get inner list
+            (is-zero? (car polynomial ))
+
+            ; polynomial isn't sparse so just check if current element (first) is 0
+            (if (zero?(car polynomial) )
+                #t
+                #f
+            )) )   
+)
 
 #|
 ############################################################################
@@ -278,18 +283,23 @@
 ; function used to check types of polynomials pased in and convert the
 ; to the correct type following multipling
 (define (multiply x y)
-
     (cond
-        ; check if polynomials are zero polynomials
-        ((or(is-zero? x) (is-zero? y)) '(0))
+        ((or (empty? x)(empty? y))
+            '(0)
+        )
+        ((or (is-zero? x)(is-zero? y))
+            '(0)
+        )
         ; check if both polynmoials are sparse
         ((and (is-sparse? x) (is-sparse? y))
+            ;check if output's empty
             (multiply-poly x y)
         )
         ; polynomials are both not zero or sparse, meaning ones dense so output result
         ; as dense
         (else
             (to-dense (multiply-poly (to-sparse x 0) (to-sparse y 0)) 0)
+           
         )
     ))
 
@@ -381,8 +391,152 @@
         (else
             (to-dense (derivative (to-sparse x 0)) 0)
         )
-
-    
     )
 )
+      
+#| 
+############################################################################
+    Test Cases
+############################################################################
+|#
 
+;testing is-sparse?
+(display "test case for is-sparse?")
+(newline)
+(display(is-sparse?  '(1 2 3 0 0))) ; return false
+(newline)
+(display(is-sparse?  '((1 0) (2 1) (3 2) (9 8)))) ; return true
+(newline)
+
+; testing to-sparse
+(display "test case for to-sparse")
+(newline)
+(display(to-sparse  '((1 0) (2 1) (3 2) (9 8)) 0)) ; just returns  ((1 0) (2 1) (3 2) (9 8))
+(newline)
+(display(to-sparse  '(1 2 3 0 0) 0)) ; converts
+(newline)
+(display(to-sparse  '(0 0 1 4 6 7 0) 0)) ; convertss
+(newline)
+(display(is-sparse? (to-sparse '(1 2 3 0 0) 0))) ; returns t
+(newline)
+
+; testing is-dense
+(display "test case for is-dense")
+(newline)
+(display "test case for todo")
+(newline)
+; testing to-dense
+(display "test case for to-dense")
+(newline)
+(display "test case for todo")
+(newline)
+;testing is-zero?
+(display "test case for is-zero?")
+(newline)
+(display(is-zero? `(0))) ; true
+(newline)
+(display(is-zero? '((0 0)))) ; true
+(newline)
+(display(is-zero? '((1 0) (2 1) (3 2) (9 8)))) ; false
+(newline)
+(display(is-zero? '(1 2 3 0 0))) ; false
+(newline)
+(display(is-zero? '())) ;
+(newline)
+
+; testing degree
+(display "test case for degree")
+(newline)
+(display(degree '(1 2 3 0 0))) ; x^0 + 2x^1 + 3x^2 should return degree 2
+(newline)
+
+(display(degree '((1 0) (2 1) (3 2) (9 8)))) ; x^0 + 2x^1 + 3x^2 + 9x^ 8 should return degree 8
+(newline)
+
+; testing coeff
+(display "test case for coeff")
+(newline)
+;(coeff (coeff '((24 0) (10 1) (6 2)) (degree '((24 0) (10 1) (6 2)))) (degree '((24 0) (10 1) (6 2)))) 
+
+;testing eval
+(display "test case for eval")
+(newline)
+(display(eval  '(1 2 3 0 0) 2)) ;  = 17
+(newline)
+(display(eval  '((1 0) (2 1) (3 2) (9 8)) 2)) ; = 2321
+(newline)
+
+;testing add
+(display "test case for add")
+(newline)
+(display(add '(1 2 3) '(3 2 1)) );= (4 4 4)
+(newline)
+(display(add '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2))) );= ((1, 0) (3 1) (5 2) (3 0))
+(newline)
+(display(add '((1 1) (2 2) (3 3) (6 5)) '(3 2 1))) ;= ((3 3 3 3 0 6 )
+(newline)
+(display(add '((1 1) (2 2) (3 3) (6 5)) '())) ; = empty list
+(newline)
+
+;testing sub
+(display "test case for sub")
+(newline)
+(display(subtract '(1 2 3) '(3 2 1)) ) ; = (-2 0 -2)
+(newline)
+(display(subtract '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2)))); = ((1, 0) (-2 1) (1 2) (3 0))
+(newline)
+(display(subtract '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)) ) ;= (-3 -1 1 3 0 6 )
+(newline)
+
+; testing multiply-polys
+(display "test case for multiply")
+(newline)
+(display(multiply  '((2  1) (2  3)) '((4  2)))) ; = 8x^3+8x^5 
+(newline)
+(display(multiply  '((2  1) (2  3)) '((4  2) (3 4)))) ; = 8x^3+ 14x^5 + 6x^7
+(newline)
+
+(display(multiply  '(2 1 2 3) '(4  2 3 4))) ; = 12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
+(newline)
+(display(multiply  '(0) '(2 1 2))) ; 0
+(newline)
+(display(multiply  '() '())) ; empty
+(newline)
+
+(display "test case for quotient")
+(newline)
+(display(quotient '((2 1) (3 4)) '((1 1) (2 2)) 5)) ; = 34
+(newline)
+
+(display(quotient '((2 1) (3 4)) '((-1 1) (-2 2)) 5)) ; = -34
+(newline)
+
+(display(quotient '((-2 1) (-3 4)) '((1 1) (2 2)) 5)) ;= -34
+(newline)
+
+(display(quotient '((-2 1) (-3 4)) '((-1 1) (-2 2)) 5)) ;= 34
+(newline)
+(display "test case for remainder")
+(newline)
+(display(remainder '((2 1) (3 4)) '((2 1) (2 2)) 5)) ; = 15
+(newline)
+
+(display(remainder '((2 1) (3 4)) '((-1 1) (-2 2)) 5)) ; = 15
+(newline)
+
+(display(remainder '((-2 1) (-3 4)) '((1 1) (2 2)) 5)) ; = -15
+(newline)
+
+(display(remainder '((-2 1) (-3 4)) '((-1 1) (-2 2)) 5)) ; = -15
+(newline)
+(display "test case for derivative")
+(newline)
+(display (derivative '((5 0) (-2 1) (3 2)) )); = ((-2 0) (6 1))
+(newline)
+
+(display (derivative '((5 0) (-2 1) (3 2) (4 5)) )); = ((-2 0) (6 1) (20 4))
+(newline)
+
+(display (derivative '(5 -2 3 0 0 4 ))) ; = (-2 6  0  0 20)
+(newline)
+(display (derivative '())) ; = empty list
