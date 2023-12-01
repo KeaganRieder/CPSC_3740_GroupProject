@@ -456,7 +456,16 @@
 ; testing coeff
 (display "test case for coeff")
 (newline)
-;(coeff (coeff '((24 0) (10 1) (6 2)) (degree '((24 0) (10 1) (6 2)))) (degree '((24 0) (10 1) (6 2)))) 
+
+(display (coeff `((24 0) (10 1) (6 2)) 2)) ; returns 6
+(newline)
+(display (coeff `(2 3 6) 2)) ; returns 6
+(newline)
+(display (coeff `(2 3 6) 1)) ; returns 3
+(newline)
+(display (coeff `(2 3 6) (degree `(2 3 6)))) ; returns 6
+(newline)
+
 
 ;testing eval
 (display "test case for eval")
