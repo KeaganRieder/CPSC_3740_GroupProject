@@ -131,7 +131,7 @@
         )
         ;otherwise it's dense so convert
         (else
-            (coeff (to-sparse x 0) y)
+            (to-dense(coeff (to-sparse x 0) y))
         )
     )
 )
@@ -423,12 +423,18 @@
 ; testing is-dense
 (display "test case for is-dense")
 (newline)
-(display "test case for todo")
+(display(is-sparse?  '(1 2 3 0 0))) ; return True
+(newline)
+(display(is-sparse?  '((1 0) (2 1) (3 2) (9 8)))) ; return False
 (newline)
 ; testing to-dense
 (display "test case for to-dense")
 (newline)
-(display "test case for todo")
+(display (to-dense '(1 2 3 4 5) 0)) ; just returns
+(newline)
+(display (to-dense '((1 0) (2 1) (3 2) (9 8)) 0)) ; converts with a lot of 0's between 3 and 9
+(newline)
+(display (to-dense '((3 2) (5 5)) 0)) ; converts, should add 2 zeros before 3 and 2 after
 (newline)
 ;testing is-zero?
 (display "test case for is-zero?")
