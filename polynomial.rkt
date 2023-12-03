@@ -358,6 +358,49 @@
                polyOne
                (remainder (- polyOne polyTwo) polyTwo  x))))))
 
+;testing stuff
+
+
+
+
+
+
+; able to change scale of a poly
+; this works
+(define (scale poly scale)
+  (map (lambda (term) (* term scale)) poly))
+
+(define (leading-term poly)
+  (if (empty? poly)
+      0
+      (first poly)))
+
+
+(define (divide-polynomials dividend divisor)
+  (define (divide-recursive current-quotient remainder)
+    (if (>= (degree remainder) (degree divisor))
+        (let* ((term-coefficient (/ (leading-term remainder) (leading-term divisor)))
+               (term (make-list (+ (degree remainder) 1) 0))
+               (term (list term-coefficient)))
+               (new-quotient (add-polynomials current-quotient term))
+               (partial (multiply-polynomial divisor term-coefficient))
+               (new-remainder (subtract-polynomials remainder partial)))
+          (divide-recursive new-quotient new-remainder))
+        (values (reverse current-quotient) remainder))
+  
+  (divide-recursive '() dividend))
+
+
+(define poly '(3 0 -4 2)) ; represents 3x^3 - 4x + 2
+(define divisor '(1 -1))  ; represents x - 1
+
+(define-values (Q r) (divide-polynomials poly divisor))
+
+(display (scale '(3 0 -4 2) 2))
+(newline)
+
+  
+
 ; helper function of derivative that applys the power rule of a polynomial
 ; passed into it
 
@@ -417,7 +460,7 @@
 ############################################################################
 |#
 
-testing is-sparse?
+;testing is-sparse?
 (display "test case for is-sparse?")
 (newline)
 (display(is-sparse?  '(1 2 3 0 0))) ; return false
@@ -425,7 +468,7 @@ testing is-sparse?
 (display(is-sparse?  '((1 0) (2 1) (3 2) (9 8)))) ; return true
 (newline)
 
- testing to-sparse
+; testing to-sparse
 (display "test case for to-sparse")
 (newline)
 (display(to-sparse  '((1 0) (2 1) (3 2) (9 8)) 0)) ; just returns  ((1 0) (2 1) (3 2) (9 8))
@@ -437,14 +480,14 @@ testing is-sparse?
 (display(is-sparse? (to-sparse '(1 2 3 0 0) 0))) ; returns t
 (newline)
 
- testing is-dense
+; testing is-dense
 (display "test case for is-dense")
 (newline)
 (display(is-sparse?  '(1 2 3 0 0))) ; return True
 (newline)
 (display(is-sparse?  '((1 0) (2 1) (3 2) (9 8)))) ; return False
 (newline)
- testing to-dense
+; testing to-dense
 (display "test case for to-dense")
 (newline)
 (display (to-dense '(1 2 3 4 5) 0)) ; just returns
@@ -453,7 +496,7 @@ testing is-sparse?
 (newline)
 (display (to-dense '((3 2) (5 5)) 0)) ; converts, should add 2 zeros before 3 and 2 after
 (newline)
-testing is-zero?
+;testing is-zero?
 (display "test case for is-zero?")
 (newline)
 (display(is-zero? `(0))) ; true
@@ -467,7 +510,7 @@ testing is-zero?
 (display(is-zero? '())) ;
 (newline)
 
- testing degree
+; testing degree
 (display "test case for degree")
 (newline)
 (display(degree '(1 2 3 0 0))) ; x^0 + 2x^1 + 3x^2 should return degree 2
@@ -476,7 +519,7 @@ testing is-zero?
 (display(degree '((1 0) (2 1) (3 2) (9 8)))) ; x^0 + 2x^1 + 3x^2 + 9x^ 8 should return degree 8
 (newline)
 
- testing coeff
+; testing coeff
 (display "test case for coeff")
 (newline)
 
@@ -490,7 +533,7 @@ testing is-zero?
 (newline)
 
 
-testing eval
+;testing eval
 (display "test case for eval")
 (newline)
 (display(eval  '(1 2 3 0 0) 2)) ;  = 17
@@ -498,7 +541,7 @@ testing eval
 (display(eval  '((1 0) (2 1) (3 2) (9 8)) 2)) ; = 2321
 (newline)
 
-testing add
+;testing add
 (display "test case for add")
 (newline)
 (display(add '(1 2 3) '(3 2 1)) );= (4 4 4)
@@ -510,7 +553,7 @@ testing add
 (display(add '((1 1) (2 2) (3 3) (6 5)) '())) ; = empty list
 (newline)
 
-testing sub
+;testing sub
 (display "test case for sub")
 (newline)
 (display(subtract '(1 2 3) '(3 2 1)) ) ; = (-2 0 -2)
@@ -520,7 +563,7 @@ testing sub
 (display(subtract '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)) ) ;= (-3 -1 1 3 0 6 )
 (newline)
 
- testing multiply-polys
+; testing multiply-polys
 (display "test case for multiply")
 (newline)
 (display(multiply  '((2  1) (2  3)) '((4  2)))) ; = 8x^3+8x^5
