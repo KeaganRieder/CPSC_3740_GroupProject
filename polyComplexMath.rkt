@@ -3,8 +3,10 @@
 ###########################################################################
     About
     conatins function the define 
-    - evaulating polynomials based on vaule k passed in
-    - adding and subtracting polynomials
+    - multiply polynomials
+    - divide them and get the remainder/derivative
+    - get derivative
+    - get the gcd of two polynomials
 ############################################################################
 |#
 
@@ -103,6 +105,25 @@
         (else
             (coeff (to-sparse polynoimal) degree))))
 
+; returns the degree of the polynomial (degree of the zero polynomial is negative
+; infinity: -inf.0)
+; converts any dense polynomials following a chekc into sparse sense
+; this only works for sparse
+(define(degree polynomial)
+
+    (cond
+        ;checking if input polynomial is empty
+        ((is-zero? polynomial) -inf.0)
+        ; read check if the polynomial is sparse, if so convert to sparse
+        ((is-sparse? polynomial)
+        ; read the last element in a spare polynomail which is a list
+        ; then reads the last element in that list to get the degree
+           (last (last polynomial ))
+        )
+        ; it's not sparse meaning it's dense so convert to sparse
+        (else
+            (degree (to-sparse polynomial 0))
+        )))
 ; takes a polynomial p(l) and a value k, returns the result of p(k).
 ; only works for sparse
 (define (eval polynomial k)
@@ -190,23 +211,23 @@
         (+ (cadr poly1) (cadr poly2)))))
 
 ; helper function to apply polynomials y term to polynomial poly1
-(define (apply-poly2-to-poly1 poly1 poly2)
+(define (apply-poly2-to-p1term poly1 poly2)
     ; check if the end of the polynomial poly1 ahs been reached
     (cond
         ; check if y is empty
         ((empty? poly1) '())
         ;still not at end of polynomial so still able to apply y to poly1
         (else
-           (append  (multiply-terms (car poly1) poly2) (apply-poly2-to-poly1 (cdr poly1) poly2)))))
+           (append  (multiply-terms (car poly1) poly2) (apply-poly2-to-p1term (cdr poly1) poly2)))))
 
 ; helper function to move through the terms in polynomial y
 (define (multiply-poly poly1 poly2)
     (if (> (length poly2) 1)
         ( if (> (length poly2) 2)
-            (append  (add (apply-poly2-to-poly1 poly1 (car poly2)) (multiply-poly poly1 (cdr poly2))))
-            (append  (add (apply-poly2-to-poly1 poly1 (car poly2)) (apply-poly2-to-poly1 poly1 (cadr poly2))))
+            (append  (add (apply-poly2-to-p1term poly1 (car poly2)) (multiply-poly poly1 (cdr poly2))))
+            (append  (add (apply-poly2-to-p1term poly1 (car poly2)) (apply-poly2-to-p1term poly1 (cadr poly2))))
         )
-        (append(apply-poly2-to-poly1 poly1 (car poly2)))
+        (append(apply-poly2-to-p1term poly1 (car poly2)))
     ))
 
 ; function used to check types of polynomials pased in and convert the
@@ -228,8 +249,62 @@
         ; as dense
         (else
             (to-dense (multiply-poly (to-sparse poly1) (to-sparse poly2)))
+        )))
+
+; helper function to divide terms
+; this uses the smae logic as the helper function
+; multiply-terms for multiply
+(define (div-terms term1 term2)
+    (list (list
+        (/ (car term1) (car term2)) ; divide term1 coef by term2 coef
+        (- (cadr term1) (cadr term2)))) ; subtract term2 power from term1 power
+)
+
+; helper function to manage divison of poly1 by poly 2 
+; returns a liast that conatins the remainder and quotent
+(define (poly-div poly1 poly2)
+    (cond
+        ; check if degree of poly1 is less then poly2
+        ; meaning that division is done
+        ((< (degree (reverse poly1)) (degree (reverse poly2)))
+            ; return the quotient (quot) and remainder (poly1)
+            '()) ;make reverse helper
+
+        ;otherwise continue dvision
+        (else
+            ; apply disivon to p1
+            ; divide terms  (append (div-terms (car poly1) (car poly2)))
+            (append (div-terms (car poly1) (car poly2)) 
+            (poly-div (reverse (subtract (reverse poly1) (multiply (reverse poly2) (div-terms (car poly1) (car poly2))))) poly2))
+             
+        )))
+
+; handles divison of polynomials
+; returns a list conatining the remainder and quoent of a divison 
+; between polynomials
+(define (division poly1 poly2)
+     (cond
+        ; check if either are 0
+        ((is-zero?  poly2) "ERROR attempt to divide by 0")
+
+        ;making sure both polys are sparse types
+        ((or (is-dense?  poly1) (is-dense?  poly2))
+            ; one poly was dense so just convert both
+            (division (to-sparse poly1) (to-sparse poly2))
         )
-    ))
+
+        ;it's valid so proceed with divison
+        (else 
+            (cons 
+                ; find quotenet
+                (poly-div (reverse poly1) (reverse poly2))
+                ;finding remainder
+                (subtract poly1 (multiply poly2 poly-div (reverse poly1) (reverse poly2)))
+            )
+        )
+    )
+)
+
 
 ; helper function of derivative that applys the power rule of a polynomial
 ; passed into it
@@ -240,8 +315,7 @@
         ((< (- (cadr poly1) 1) 0) '() )
         (else
             (list(list (* (car poly1) (cadr poly1))
-                (- (cadr poly1) 1)))))
-)
+                (- (cadr poly1) 1))))))
 
 ; finds the dervative of a polynomial  poly1
 ; works for both sparse and dense representations of polynomials
@@ -256,8 +330,7 @@
         )
         ; not empty, or sparse meaning it is dense
         (else
-            (to-dense (derivative (to-sparse poly1)))
-        )))
+            (to-dense (derivative (to-sparse poly1))))))
 
 #|
 ############################################################################
@@ -265,29 +338,56 @@
 ############################################################################
 |#
 ;testing multiply-polys
-(display "test case for multiply")
+; (display "test case for multiply")
+; (newline)
+; (display(multiply  '((2  1) (2  3)) '((4  2)))) ; = 8x^3+8x^5
+; (newline)
+; (display(multiply  '((2  1) (2  3)) '((4  2) (3 4)))) ; = 8x^3+ 14x^5 + 6x^7
+; (newline)
+; (display(multiply  '(2 1 2 3) '(4  2 3 4))) ; = 12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
+; (newline)
+; (display(multiply  '(0) '(2 1 2))) ; 0
+; (newline)
+; (display(multiply  '(2) '(2 1 2))) ; left side is doubled
+; (newline)
+; (display(multiply  '() '())) ; 0
+; (newline)
+
+;divison only works for sparse rep so no need to test dense
+; (display "test case for divison")
+; (newline)
+; (display (reverse '((-7 0) (23 1) (6 2) (-2 3) (3 4))) ) 
+; (display " / ")
+; (display (reverse '((5 0) (-2 1) (1 2))))
+; (newline)
+; (display (division '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2))))  ; quotient = 3x^2 + 4x - 1 ; remainder = x -2
+; (newline)
+
+; (display (car (division '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2))))) ; quotient = 3x^2 + 4x - 1 
+; (newline)
+; (display (cdr (division '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2))))) ; remainder = x -2
+; (newline)
+(display "test case for divison")
 (newline)
-(display(multiply  '((2  1) (2  3)) '((4  2)))) ; = 8x^3+8x^5
+(display (reverse '((-7 0) (23 1) (6 2) (-2 3) (3 4))) ) 
+(display " / ")
+(display (reverse '((5 0) (-2 1) (1 2))))
 (newline)
-(display(multiply  '((2  1) (2  3)) '((4  2) (3 4)))) ; = 8x^3+ 14x^5 + 6x^7
+(display(division '((-7 0) (23 1) (6 2) (-2 3) (3 4))'((5 0) (-2 1) (1 2)))) ; quotient = 3x^2 + 4x - 1 ; remainder = x -2
+(newline)
+(display (car (division '((-7 0) (23 1) (6 2) (-2 3) (3 4))'((5 0) (-2 1) (1 2))))) ; quotient = 3x^2 + 4x - 1 
+(newline)
+(display (cdr (division '((-7 0) (23 1) (6 2) (-2 3) (3 4))'((5 0) (-2 1) (1 2))))) ; remainder = x -2
 (newline)
 
-(display(multiply  '(2 1 2 3) '(4  2 3 4))) ; = 12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
-(newline)
-(display(multiply  '(0) '(2 1 2))) ; 0
-(newline)
-(display(multiply  '() '())) ; empty
-(newline)
 
-(display "test case for derivative")
-(newline)
-(display (derivative '((5 0) (-2 1) (3 2)) )); = ((-2 0) (6 1))
-(newline)
-
-(display (derivative '((5 0) (-2 1) (3 2) (4 5)) )); = ((-2 0) (6 1) (20 4))
-(newline)
-
-(display (derivative '(5 -2 3 0 0 4 ))) ; = (-2 6  0  0 20)
-(newline)
-(display (derivative '())) ; = empty list
-(newline)
+; (display "test case for derivative")
+; (newline)
+; (display (derivative '((5 0) (-2 1) (3 2)) )); = ((-2 0) (6 1))
+; (newline)
+; (display (derivative '((5 0) (-2 1) (3 2) (4 5)) )); = ((-2 0) (6 1) (20 4))
+; (newline)
+; (display (derivative '(5 -2 3 0 0 4 ))) ; = (-2 6  0  0 20)
+; (newline)
+; (display (derivative '())) ; = empty list
+; (newline)

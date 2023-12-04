@@ -304,102 +304,59 @@
     ))
 
 ;function used to find the quotient of p(x) and q(x)
-(define (quotient polyOne polyTwo x)
- ; is this still a polynomial
-  (if (list? polyOne)
-      ;make it an int
-      (quotient (eval polyOne x) (eval polyTwo x) 0)
-      ;is poly one negative?
-      (if(negative? polyOne)
-         ;are both poly's negative?
-         (if(negative? polyTwo)
-            ; now that we know how to deal with it, can we get any closer to 0?
-            (if(positive? (- polyOne polyTwo))
-               x
-               (quotient (- polyOne polyTwo) polyTwo (+ x 1)))
-            (if(positive? (+ polyOne polyTwo))
-               x
-               (quotient (+ polyOne polyTwo) polyTwo (- x 1))))
-         ;poly one is positive, is polytwo negative?
-         (if(negative? polyTwo)
-            ;now that we know how to deal with it, can we get closer to 0?
-            (if(negative? (+ polyOne polyTwo))
-               x
-               (quotient (+ polyOne polyTwo) polyTwo (- x 1)))
-            (if(negative? (- polyOne polyTwo))
-               x
-               (quotient (- polyOne polyTwo) polyTwo (+ x 1)))))))
+; (define (quotient polyOne polyTwo x)
+;  ; is this still a polynomial
+;   (if (list? polyOne)
+;       ;make it an int
+;       (quotient (eval polyOne x) (eval polyTwo x) 0)
+;       ;is poly one negative?
+;       (if(negative? polyOne)
+;          ;are both poly's negative?
+;          (if(negative? polyTwo)
+;             ; now that we know how to deal with it, can we get any closer to 0?
+;             (if(positive? (- polyOne polyTwo))
+;                x
+;                (quotient (- polyOne polyTwo) polyTwo (+ x 1)))
+;             (if(positive? (+ polyOne polyTwo))
+;                x
+;                (quotient (+ polyOne polyTwo) polyTwo (- x 1))))
+;          ;poly one is positive, is polytwo negative?
+;          (if(negative? polyTwo)
+;             ;now that we know how to deal with it, can we get closer to 0?
+;             (if(negative? (+ polyOne polyTwo))
+;                x
+;                (quotient (+ polyOne polyTwo) polyTwo (- x 1)))
+;             (if(negative? (- polyOne polyTwo))
+;                x
+;                (quotient (- polyOne polyTwo) polyTwo (+ x 1)))))))
 
 ;function used to find the remainder of p(x) and q(x)
 ;works the same as quotient, just returns remainder instead
-(define (remainder polyOne polyTwo x)
- ; is this still a polynomial
-  (if (list? polyOne)
-      ;make it an int
-      (remainder (eval polyOne x) (eval polyTwo x) 0)
-      ;is poly one negative?
-      (if(negative? polyOne)
-         ;are both poly's negative?
-         (if(negative? polyTwo)
-            ; now that we know how to deal with it, can we get any closer to 0?
-            (if(positive? (- polyOne polyTwo))
-               polyOne
-               (remainder (- polyOne polyTwo) polyTwo x))
-            (if(positive? (+ polyOne polyTwo))
-               polyOne
-               (remainder (+ polyOne polyTwo) polyTwo  x)))
-         ;poly one is positive, is polytwo negative?
-         (if(negative? polyTwo)
-            ;now that we know how to deal with it, can we get closer to 0?
-            (if(negative? (+ polyOne polyTwo))
-               polyOne
-               (remainder (+ polyOne polyTwo) polyTwo x))
-            (if(negative? (- polyOne polyTwo))
-               polyOne
-               (remainder (- polyOne polyTwo) polyTwo  x))))))
-
-;testing stuff
-
-
-
-
-
-
-; able to change scale of a poly
-; this works
-(define (scale poly scale)
-  (map (lambda (term) (* term scale)) poly))
-
-(define (leading-term poly)
-  (if (empty? poly)
-      0
-      (first poly)))
-
-
-(define (divide-polynomials dividend divisor)
-  (define (divide-recursive current-quotient remainder)
-    (if (>= (degree remainder) (degree divisor))
-        (let* ((term-coefficient (/ (leading-term remainder) (leading-term divisor)))
-               (term (make-list (+ (degree remainder) 1) 0))
-               (term (list term-coefficient)))
-               (new-quotient (add-polynomials current-quotient term))
-               (partial (multiply-polynomial divisor term-coefficient))
-               (new-remainder (subtract-polynomials remainder partial)))
-          (divide-recursive new-quotient new-remainder))
-        (values (reverse current-quotient) remainder))
-  
-  (divide-recursive '() dividend))
-
-
-(define poly '(3 0 -4 2)) ; represents 3x^3 - 4x + 2
-(define divisor '(1 -1))  ; represents x - 1
-
-(define-values (Q r) (divide-polynomials poly divisor))
-
-(display (scale '(3 0 -4 2) 2))
-(newline)
-
-  
+; (define (remainder polyOne polyTwo x)
+;  ; is this still a polynomial
+;   (if (list? polyOne)
+;       ;make it an int
+;       (remainder (eval polyOne x) (eval polyTwo x) 0)
+;       ;is poly one negative?
+;       (if(negative? polyOne)
+;          ;are both poly's negative?
+;          (if(negative? polyTwo)
+;             ; now that we know how to deal with it, can we get any closer to 0?
+;             (if(positive? (- polyOne polyTwo))
+;                polyOne
+;                (remainder (- polyOne polyTwo) polyTwo x))
+;             (if(positive? (+ polyOne polyTwo))
+;                polyOne
+;                (remainder (+ polyOne polyTwo) polyTwo  x)))
+;          ;poly one is positive, is polytwo negative?
+;          (if(negative? polyTwo)
+;             ;now that we know how to deal with it, can we get closer to 0?
+;             (if(negative? (+ polyOne polyTwo))
+;                polyOne
+;                (remainder (+ polyOne polyTwo) polyTwo x))
+;             (if(negative? (- polyOne polyTwo))
+;                polyOne
+;                (remainder (- polyOne polyTwo) polyTwo  x))))))
 
 ; helper function of derivative that applys the power rule of a polynomial
 ; passed into it
