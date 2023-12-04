@@ -127,6 +127,9 @@
 ; takes a polynomial p(l) and a value k, returns the result of p(k).
 ; only works for sparse
 (define (eval polynomial k)
+(display "math")
+    (display polynomial)
+    (newline)
     (cond
         ; check if empty
         ((empty? polynomial) '(0))
@@ -185,7 +188,7 @@
 (define (invert-coef polynoimal)
     (map (lambda (poly1) (* -1 poly1)) polynoimal))
 
-; subtracts polynomial poly2 from polynomial poly1
+; subtracts polynomial y from polynomial poly1
 ; first checks the types of polynomials
 (define (subtract poly1 poly2)
     ; check if both polynomials are sparse
@@ -259,7 +262,7 @@
         (- (cadr term1) (cadr term2)))) ; subtract term2 power from term1 power
 )
 
-; helper function to manage divison of poly1 by poly2 
+; helper function to manage divison of poly1 by poly 2 
 ; returns a liast that conatins the remainder and quotent
 (define (poly-div poly1 poly2)
     (cond
@@ -267,28 +270,16 @@
         ; meaning that division is done
         ((< (degree (reverse poly1)) (degree (reverse poly2)))
             ; return the quotient (quot) and remainder (poly1)
-            '()) 
+            '()) ;make reverse helper
+
         ;otherwise continue dvision
         (else
             ; apply disivon to p1
             ; divide terms  (append (div-terms (car poly1) (car poly2)))
             (append (div-terms (car poly1) (car poly2)) 
             (poly-div (reverse (subtract (reverse poly1) (multiply (reverse poly2) (div-terms (car poly1) (car poly2))))) poly2))
+             
         )))
-
-; (display (gcd '((2 0) (-12 1) (18 2) (-12 3) (3 4)) '((4 0) (-4 1) (1 2)))) ; = x^2 - 4x + 4
-; Dividend -Divisor × Quotient =  + Remainder
-;helper function to get the remainder
-(define(get-remainder poly1 poly2)
-    
-    (display "divided:")(display poly1)(newline)
-    (display "divisor:")(display poly2)(newline)
-    (display "Quotient:")(display(reverse (poly-div (reverse poly1) (reverse poly2))))(newline)
-    (display "divisor:") (display (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2))(newline)
-    (display "remainder") (display (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)poly1))(newline)(newline)
-
-    (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2) poly1)
-)
 
 ; handles divison of polynomials
 ; returns a list conatining the remainder and quoent of a divison 
@@ -299,20 +290,27 @@
             (cons '(0) '((0)))
         )
         ; check if either are 0
-        ((or (is-zero?  poly2) (empty? poly2)) -inf.0)
+        ((or (is-zero?  poly2) (empty? poly2)) "ERROR attempt to divide by 0")
+
+        
         ;making sure both polys are sparse types
         ((or (is-dense?  poly1) (is-dense?  poly2))
             ; one poly was dense so just convert both
             (division (to-sparse poly1) (to-sparse poly2))
         )
+
+        ;make sure the polynomials are in the right positions
+        ((< (degree  poly1) (degree  poly2))
+            (division poly1 poly2)
+        )
+
         ;it's valid so proceed with divison
         (else 
-        ;  (display "remainder:-") (display (get-remainder poly1 poly2))(newline)(newline)
             (cons 
                 ; find quotenet
                 (reverse(poly-div (reverse poly1) (reverse poly2)))
                 ;finding remainder
-                (get-remainder poly1 poly2)
+                (subtract poly1 (multiply poly2 (poly-div (reverse poly1) (reverse poly2))))
             )
         )
     )
@@ -321,7 +319,9 @@
 ;divide a polynomial poly1(x) by poly2(x) and returns the quotient. You may assume
 ;q(x) ̸= 0.
 (define (quotient poly1 poly2 x)
+    
     (eval (car (division poly1 poly2)) x)
+    
 )
 
 ; divide a polynomial p(x) by q(x) and returns the remainder. You may assume
@@ -330,7 +330,7 @@
     (cond
         ((is-zero? (cdr (division poly1 poly2))) 0)
         (else
-        (eval (cdr (division poly2 poly1)) x))
+        (eval (cdr (division poly1 poly2)) x))
     )
 )
 
@@ -362,15 +362,14 @@
 
 ;helper function to calcuatle gcd inorder to return proper
 ; type
-
 (define (find-gcd poly1 poly2)
-    ; (display "gcd")(display poly1) (display " | ") (display poly1)(newline)
-    ; checking if poly 2 is 0 or they both equil
+    ; checking if poly 2 is 0 
     ; which means that the gcd has been found
-    (cond
-        ((or (is-zero? poly2)) poly1 )
-        ; ((empty? (cdr (division poly1 poly2))) poly1)
-        (else (find-gcd poly2 (cdr (division poly1 poly2))))
+    (if (is-zero? poly2)
+        ;poly2 is zero return gcd
+        poly1
+        ;continue perfoming operation poly1 mod poly2
+        (find-gcd poly2 (cdr (division poly1 poly2)) )
     )
 )
 
@@ -412,35 +411,39 @@
 ; (display(multiply  '() '())) ; 0
 ; (newline)
 
-; ;divison only works for sparse rep so no need to test dense
+;divison only works for sparse rep so no need to test dense
 ; (display "test case for division")
 ; (newline)
-; (display(division '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)))) ; quotient = 3x^2 + 4x - 1 ; remainder = x -2
-; (newline)
-; (display (car (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; quotient = 9x^2 + -12x +16 ;
-; (newline)
-; (display (cdr (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; remainder = 0
-; (newline)
-; (display(division '() '(5 -2 1 ))) ; 0,0
-; (newline)
-; (display(division '(5 -2 1 )'() )) ; error
-; (newline)
+(display(division '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)))) ; quotient = 3x^2 + 4x - 1 ; remainder = x -2
+(newline)
+(display(division '((5 0) (-2 1) (1 2)) '((-7 0) (23 1) (6 2) (-2 3) (3 4)) )) ; quotient = 3x^2 + 4x - 1 ; remainder = x -2
+(newline)
+(display (car (division '((-7 0) (23 1) (6 2) (-2 3) (3 4))'((5 0) (-2 1) (1 2))))) ; quotient = 3x^2 + 4x - 1 
+(newline)
+(display (cdr (division '((-7 0) (23 1) (6 2) (-2 3) (3 4))'((5 0) (-2 1) (1 2))))) ; remainder = x -2
+(newline)
+(display(division '(-7 23 6 -2 3) '(5 -2 1 ))) ; quotient = 3x^2 + 4x - 1 ; remainder = x -2
+(newline)
+(display(division '() '(5 -2 1 ))) ; 0,0
+(newline)
+(display(division '(5 -2 1 )'() )) ; error
+(newline)
+(display (division '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)))) ; = 9(3)^2 - 12(2) + 16 = 73
+(newline)
 
-; ;quotient testing
-; (display "test case for quotient")
-; (newline)
-; (display (quotient '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)) 5)) ; = 3(5)^2 + 4(5) - 1 = 94
-; (newline)
-; (display (quotient '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)) 3)) ; = 9(3)^2 - 12(3) + 16 = 61
-; (newline)
+;quotient testing
+(display "test case for quotient")
+(newline)
+(display (quotient '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)) 5)) ; = 3(5)^2 + 4(5) - 1 = 94
+(newline)
+(display (quotient '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)) 3)) ; = 9(3)^2 - 12(3) + 16 = 61
+(newline)
 
-; (display "test case for remainder")
-; (newline)
+(display "test case for remainder")
+(newline)
 (display (remainder '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)) 5)) ; = 5 -2 = 3
 (newline)
-(display (remainder '((1 0) (1 1)) 5)) ; = 5 -2 = 3
-(newline)
-; (display (remainder '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)) 3)) ; = 0
+(display (remainder '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)) 3)) ; = 0
 
 ; (display "test case for derivative")
 ; (newline)
@@ -451,13 +454,4 @@
 ; (display (derivative '(5 -2 3 0 0 4 ))) ; = (-2 6  0  0 20)
 ; (newline)
 ; (display (derivative '())) ; = empty list
-; (newline)
-
-(display "test case for gcd")
-(newline)
-; (display (gcd '((4 1) (6 2) (2 3)) '((2 1) (1 2)))) ; = 2x +1 4x + 6x^ + 2x^3 and 2x + x^2
-; (newline)
-; (display (gcd '(0 4 6 2) '( 0 2 1 ) )) ; = x^2 - 2x
-; (newline)
-; (display (gcd '((2 0) (-12 1) (18 2) (-12 3) (3 4)) '((4 0) (-4 1) (1 2)))) ; = x^2 - 4x + 4 2 -12x+18x^2-12x^3+
 ; (newline)
