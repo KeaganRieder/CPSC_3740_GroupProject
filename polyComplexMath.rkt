@@ -276,18 +276,18 @@
             (poly-div (reverse (subtract (reverse poly1) (multiply (reverse poly2) (div-terms (car poly1) (car poly2))))) poly2))
         )))
 
-; (display (gcd '((2 0) (-12 1) (18 2) (-12 3) (3 4)) '((4 0) (-4 1) (1 2)))) ; = x^2 - 4x + 4
-; Dividend -Divisor × Quotient =  + Remainder
+
 ;helper function to get the remainder
 (define(get-remainder poly1 poly2)
-    
+    ; Dividend -Divisor × Quotient =  + Remainder
     (display "divided:")(display poly1)(newline)
     (display "divisor:")(display poly2)(newline)
     (display "Quotient:")(display(reverse (poly-div (reverse poly1) (reverse poly2))))(newline)
     (display "divisor:") (display (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2))(newline)
     (display "remainder") (display (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)poly1))(newline)(newline)
-
-    (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2) poly1)
+    (if (is-zero? (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2) poly1))
+    '(0)
+    (subtract poly1 (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)))
 )
 
 ; handles divison of polynomials
@@ -415,12 +415,14 @@
 ; ;divison only works for sparse rep so no need to test dense
 ; (display "test case for division")
 ; (newline)
-; (display(division '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)))) ; quotient = 3x^2 + 4x - 1 ; remainder = x -2
-; (newline)
-; (display (car (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; quotient = 9x^2 + -12x +16 ;
-; (newline)
-; (display (cdr (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; remainder = 0
-; (newline)
+(display (car (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; quotient = 9x^2 + -12x +16 ;
+(newline)
+(display (cdr (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; remainder = 0
+(newline)
+(display (car (division '((3 0) (-5 1) (6 2) ) '((-1 0) (2 1) )))) ; quotient = 3x-1 ;
+(newline)
+(display (cdr (division '((3 0) (-5 1) (6 2) ) '((-1 0) (2 1) )))) ; remainder = 2
+(newline)
 ; (display(division '() '(5 -2 1 ))) ; 0,0
 ; (newline)
 ; (display(division '(5 -2 1 )'() )) ; error
@@ -436,10 +438,9 @@
 
 ; (display "test case for remainder")
 ; (newline)
-(display (remainder '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)) 5)) ; = 5 -2 = 3
-(newline)
-(display (remainder '((1 0) (1 1)) 5)) ; = 5 -2 = 3
-(newline)
+; (display (remainder '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)) 5)) ; = 5 -2 = 3
+; (newline)
+
 ; (display (remainder '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)) 3)) ; = 0
 
 ; (display "test case for derivative")
@@ -455,7 +456,7 @@
 
 (display "test case for gcd")
 (newline)
-; (display (gcd '((4 1) (6 2) (2 3)) '((2 1) (1 2)))) ; = 2x +1 4x + 6x^ + 2x^3 and 2x + x^2
+; (display (gcd '((4 1) (6 2) (2 3)) '((2 1) (1 2)))) ; = 4x + 6x^2 + 2x^3 and 2x + x^2
 ; (newline)
 ; (display (gcd '(0 4 6 2) '( 0 2 1 ) )) ; = x^2 - 2x
 ; (newline)
