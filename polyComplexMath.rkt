@@ -265,7 +265,7 @@
     (cond
         ; check if degree of poly1 is less then poly2
         ; meaning that division is done
-        ((< (degree (reverse poly1)) (degree (reverse poly2)))
+        ((< (degree (reverse poly1)) (degree (reverse poly2))) ; breaks in some cases 
             ; return the quotient (quot) and remainder (poly1)
             '()) 
         ;otherwise continue dvision
@@ -279,12 +279,6 @@
 
 ;helper function to get the remainder
 (define(get-remainder poly1 poly2)
-    ; Dividend -Divisor × Quotient =  + Remainder
-    (display "divided:")(display poly1)(newline)
-    (display "divisor:")(display poly2)(newline)
-    (display "Quotient:")(display(reverse (poly-div (reverse poly1) (reverse poly2))))(newline)
-    (display "divisor:") (display (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2))(newline)
-    (display "remainder") (display (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)poly1))(newline)(newline)
     (if (is-zero? (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2) poly1))
     '(0)
     (subtract poly1 (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)))
@@ -307,7 +301,6 @@
         )
         ;it's valid so proceed with divison
         (else 
-        ;  (display "remainder:-") (display (get-remainder poly1 poly2))(newline)(newline)
             (cons 
                 ; find quotenet
                 (reverse(poly-div (reverse poly1) (reverse poly2)))
@@ -320,18 +313,14 @@
 
 ;divide a polynomial poly1(x) by poly2(x) and returns the quotient. You may assume
 ;q(x) ̸= 0.
-(define (quotient poly1 poly2 x)
-    (eval (car (division poly1 poly2)) x)
+(define (quotient poly1 poly2)
+    (car (division poly1 poly2))
 )
 
 ; divide a polynomial p(x) by q(x) and returns the remainder. You may assume
 ; q(x) ̸= 0
-(define (remainder poly1 poly2 x)
-    (cond
-        ((is-zero? (cdr (division poly1 poly2))) 0)
-        (else
-        (eval (cdr (division poly2 poly1)) x))
-    )
+(define (remainder poly1 poly2 )
+    (cdr (division poly1 poly2))   
 )
 
 ; helper function of derivative that applys the power rule of a polynomial
@@ -397,24 +386,24 @@
 ############################################################################
 |#
 ;testing multiply-polys
-; (display "test case for multiply")
-; (newline)
-; (display(multiply  '((2  1) (2  3)) '((4  2)))) ; = 8x^3+8x^5
-; (newline)
-; (display(multiply  '((2  1) (2  3)) '((4  2) (3 4)))) ; = 8x^3+ 14x^5 + 6x^7
-; (newline)
-; (display(multiply  '(2 1 2 3) '(4  2 3 4))) ; = 12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
-; (newline)
-; (display(multiply  '(0) '(2 1 2))) ; 0
-; (newline)
-; (display(multiply  '(2) '(2 1 2))) ; left side is doubled
-; (newline)
-; (display(multiply  '() '())) ; 0
-; (newline)
+(display "test case for multiply")
+(newline)
+(display(multiply  '((2  1) (2  3)) '((4  2)))) ; = 8x^3+8x^5
+(newline)
+(display(multiply  '((2  1) (2  3)) '((4  2) (3 4)))) ; = 8x^3+ 14x^5 + 6x^7
+(newline)
+(display(multiply  '(2 1 2 3) '(4  2 3 4))) ; = 12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
+(newline)
+(display(multiply  '(0) '(2 1 2))) ; 0
+(newline)
+(display(multiply  '(2) '(2 1 2))) ; left side is doubled
+(newline)
+(display(multiply  '() '())) ; 0
+(newline)
 
 ; ;divison only works for sparse rep so no need to test dense
-; (display "test case for division")
-; (newline)
+(display "test case for division")
+(newline)
 (display (car (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; quotient = 9x^2 + -12x +16 ;
 (newline)
 (display (cdr (division '((64 0) (0 1) (0 2) (27 3) )'((4 0) (3 1))))) ; remainder = 0
@@ -423,6 +412,9 @@
 (newline)
 (display (cdr (division '((3 0) (-5 1) (6 2) ) '((-1 0) (2 1) )))) ; remainder = 2
 (newline)
+(display  (cdr (division '((4 0) (-8 1) (6 2) (7 3)) '((-2 0) (1 1) (1 3))))) ; =7x^2 - 13x + 11 currently maybe failing
+(newline)
+
 ; (display(division '() '(5 -2 1 ))) ; 0,0
 ; (newline)
 ; (display(division '(5 -2 1 )'() )) ; error
@@ -430,18 +422,8 @@
 
 ; ;quotient testing
 ; (display "test case for quotient")
-; (newline)
-; (display (quotient '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)) 5)) ; = 3(5)^2 + 4(5) - 1 = 94
-; (newline)
-; (display (quotient '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)) 3)) ; = 9(3)^2 - 12(3) + 16 = 61
-; (newline)
+;remainder and quote need work still 
 
-; (display "test case for remainder")
-; (newline)
-; (display (remainder '((-7 0) (23 1) (6 2) (-2 3) (3 4)) '((5 0) (-2 1) (1 2)) 5)) ; = 5 -2 = 3
-; (newline)
-
-; (display (remainder '((64 0) (0 1) (0 2) (27 3)) '((4 0) (3 1)) 3)) ; = 0
 
 ; (display "test case for derivative")
 ; (newline)
@@ -454,11 +436,16 @@
 ; (display (derivative '())) ; = empty list
 ; (newline)
 
+
+
+
 (display "test case for gcd")
 (newline)
-; (display (gcd '((4 1) (6 2) (2 3)) '((2 1) (1 2)))) ; = 4x + 6x^2 + 2x^3 and 2x + x^2
-; (newline)
+(display (gcd '((4 0) (-8 1) (6 2) (7 3)) '((-2 0) (1 1) (1 3)))) ; 
+(newline)
 ; (display (gcd '(0 4 6 2) '( 0 2 1 ) )) ; = x^2 - 2x
 ; (newline)
 ; (display (gcd '((2 0) (-12 1) (18 2) (-12 3) (3 4)) '((4 0) (-4 1) (1 2)))) ; = x^2 - 4x + 4 2 -12x+18x^2-12x^3+
 ; (newline)
+
+;7x^3 + 6x^2 - 8x + 4 and q(x) = x^3 + x - 2.

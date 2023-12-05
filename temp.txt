@@ -1,0 +1,6 @@
+; Dividend -Divisor × Quotient =  + Remainder
+    ; (display "divided:")(display poly1)(newline)
+    ; (display "divisor:")(display poly2)(newline)
+    ; (display "Quotient:")(display(reverse (poly-div (reverse poly1) (reverse poly2))))(newline)
+    ; (display "divisor:") (display (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2))(newline)
+    ; (display "remainder") (display (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)poly1))(newline)(newline)
