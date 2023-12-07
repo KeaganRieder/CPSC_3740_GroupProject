@@ -2,29 +2,44 @@
 #|
 ###########################################################################
     About
-    3740 group Project
-    by Keagan Rieder and Justin Wolfenden
+    conatins function the define 
+    - multiply polynomials
+    - divide them and get the remainder/derivative
+    - get derivative
+    - get the gcd of two polynomials
+############################################################################
+|#
 
-    a collection of functions to perform operations on polynomail repsent
-    as either sparse or dense. the following is summary of the operation
-    that this program is capable of:
-    > check and convert type of polynomial
-    > perform mathmatical operation on between polyniomals.
-    > find different part of polynomials, like the
-        >> find the degree and coeeficent
-        >> if it's a zero polynoimal
-############################################################################
-|#
-#|
-############################################################################
-    defining functions to check if it's dense, sparse, or zero
-    as well as convert between the dense or sparse
-############################################################################
-|#
-; check if the input is the zero polynomial
-; works for both types of polynomials
+; polynoimal is a list, returns false if list is sparse and true if list is dense
+(define (is-dense? polynoimal)
+  ;is first elment a sub list in a list?
+  (if (list? (car polynoimal))
+      #false
+      #true))
+
+; converts from sparse to dense polynoimal 
+(define (to-dense polynoimal)
+    ; check if polynoimal is dense
+    (if (is-dense? polynoimal)
+      ; polynoimal is dense so just return it
+      polynoimal
+      ; polynoimal isn't dense so convert
+      (make-dense polynoimal 0)))
+
+; helper function for to dense, that converts the polynomial to a dense type
+(define (make-dense polynoimal degree)
+    ; is it empty
+    (if (null? polynoimal)
+        null
+        ;its not empty, lets assume it is sparse, is the second value of the first list the value we are curently looking for?
+        (if (equal? degree (car (cdr (car polynoimal))))
+            ;it is, add the value to the list
+            (append (list (list-ref (car polynoimal) 0)) (make-dense (cdr polynoimal) (+ 1 degree)))
+            ;its not add 0 to the list and look for the nepolynoimalt value
+            (append (list 0) (make-dense polynoimal (+ 1 degree))))) )
+
+;checks if polunomial is sparse type
 (define(is-sparse? polynomial)
-
     (if (empty? polynomial)
         #false
         ; if current element is sublist then
@@ -35,106 +50,64 @@
         )))
 
 ; convert a polynomal into being sparse
-(define(to-sparse polynomial index)
+(define(to-sparse polynomial)
     ; checking if polynomial is already sparse
     ( if (is-sparse? polynomial)
         polynomial
-        ; it isn't so convert
-        (make-sparse polynomial index)
+        ; it isn't so convert and start at degree 0
+        (make-sparse polynomial 0)
     ))
 
 ;helper function for to-sparse
-(define (make-sparse polynomial index)
-
+(define (make-sparse polynomial degree)
     (cond
         ;check if it is empty, and return an empty list
         ((empty? polynomial) '())
 
         ;check if  element is equail to 0
-        ((= (car polynomial) 0) (make-sparse (cdr polynomial) (add1 index)))
+        ((= (car polynomial) 0) (make-sparse (cdr polynomial) (add1 degree)))
         ;otherwise run throuh the rest
         (else
-        (cons (list (car polynomial) index)
-            (make-sparse (cdr polynomial) (add1 index)))
-        )
-   )
-)
-
-; x is a list, returns false if list is sparse and true if list is dense
-(define (is-dense? x)
-  ;is first elment a sub list in a list?
-  (if (list? (car x))
-      #false
-      #true))
-
-; converts from sparse to dense  x must be a sparse list or it will error, set y to 0 for recursion
-(define (to-dense x y)
-    ; check if x is dense
-    (if (is-dense? x)
-      ; x is dense so just retunr it
-      x
-      ; x isn't dense so convert
-      (make-dense x y)))
-
-; helper function for to dense, that converts th epolynomial to a dense type
-(define (make-dense x y)
-
-    ; is it empty
-    (if (null? x)
-        null
-
-        ;its not empty, lets assume it is sparse, is the second value of the first list the value we are curently looking for?
-        (if (equal? y (car (cdr (car x))))
-            ;it is, add the value to the list
-            (append (list (list-ref (car x) 0)) (make-dense (cdr x) (+ 1 y)))
-            ;its not add 0 to the list and look for the next value
-            (append (list 0) (make-dense x (+ 1 y))))) )
+        (cons (list (car polynomial) degree)
+            (make-sparse (cdr polynomial) (add1 degree)))
+        )))  
 
 ; check if the input is the zero polynomial
-; works for both types of polynomials
 (define(is-zero? polynomial)
-
-    (if (empty? polynomial)
+    ;checking type and if empty
+    (cond
         ;it's empty meaning zero
-        #t
-        ;not empty
-        (if (is-sparse? polynomial)
-            ; polynomial is sparse, get inner list
-            (is-zero? (car polynomial ))
-
-            ; polynomial isn't sparse so just check if current element (first) is 0
-            (if (zero?(car polynomial) )
+        ((empty? polynomial) #t)
+        ;polynomials is sparse convert to dense
+        ((is-sparse? polynomial) (is-zero? (to-dense polynomial)))
+        
+        ;check last charcter of list, to see if zero
+        (else
+            (if (zero? (last polynomial))
                 #t
                 #f
-            )) )
-)
-
-#|
-############################################################################
-    defining function to check the degree and coefficient
-############################################################################
-|#
-; returns the coefficent of x^y converts all lists to dense for ease of implementation negative y will break this
-(define (coeff x y)
-    (cond
-        ;check if end of polynomial has been reached
-        ((empty? x) '(0))
-        ;checking if list is sparse
-        ((is-sparse? x)
-            ;check if current element is the power being searched for
-            (if ( = (last (car x))  y)
-                ; it is so return it
-                (car (car x))
-                ;it's not
-                (coeff (cdr x) y)
             )
         )
+    ))
+
+
+
+; returns the coefficent of polynoimal^y converts all lists to dense for ease of implementation negative y will break this
+(define (coeff polynoimal degree)
+    (cond
+        ;check if end of polynomial has been reached
+        ((empty? polynoimal) '(0))
+        ;checking if list is sparse
+        ((is-sparse? polynoimal)
+            ;check if current element is the power being searched for
+            (if ( = (last (car polynoimal))  degree)
+                ; it is so return it
+                (car (car polynoimal))
+                ;it's not
+                (coeff (cdr polynoimal) degree)))
         ;otherwise it's dense so convert
         (else
-            (coeff (to-sparse x 0) y)
-        )
-    )
-)
+            (coeff (to-sparse polynoimal) degree))))
 
 ; returns the degree of the polynomial (degree of the zero polynomial is negative
 ; infinity: -inf.0)
@@ -155,425 +128,361 @@
         (else
             (degree (to-sparse polynomial 0))
         )))
-
-#|
-############################################################################
-    defining function to perform mathmatical operation between polynomials
-############################################################################
-|#
-; takes a polynomial p(x) and a value k, returns the result of p(k).
+; takes a polynomial p(l) and a value k, returns the result of p(k).
 ; only works for sparse
 (define (eval polynomial k)
-
     (cond
         ; check if empty
         ((empty? polynomial) '(0))
         ; check if 0
         ((is-zero? polynomial ) '(0))
         ; check if  not sparse and then converting
-        ((not (is-sparse? polynomial)) (eval (to-sparse polynomial 0) k))
+        ((not (is-sparse? polynomial)) (eval (to-sparse polynomial) k))
 
         ; evaluating
         (else
             (apply + (map (lambda (term)
                 (* (first term) (expt k (second term))))
                 polynomial
-            ))
-        )
-    )
+            ))))
 )
 
-; takes two polynomials and adds them broken atm need to fix
-(define (add x y)
-
+; takes two polynomials and adds them broken atm need to fipoly1
+(define (add poly1 poly2)
     (cond
         ; check if both list is empty
-        ((and (empty? x) (empty? y))
+        ((and (empty? poly1) (empty? poly2))
             '()
         )
         ;checking either list is empty
-        ((or (empty? x) (empty? y))
-            (if (empty? x)
-                y ; x is empty so return y as result
-                x ; y is empty so return x as result
-            )
-        )
+        ((or (empty? poly1) (empty? poly2))
+            (if (empty? poly1)
+                poly2 ; poly1 is empty so return poly2 as result
+                poly1 ; poly2 is empty so return poly1 as result
+            ))
         ;neither are so check type
 
-        ((and (is-sparse? x) (is-sparse? y))
+        ((and (is-sparse? poly1) (is-sparse? poly2))
             ; both are sparse polynomials
-            (to-sparse(add-Poly (to-dense x 0) (to-dense y 0)) 0)
-        )
+            (to-sparse(add-Poly (to-dense poly1) (to-dense poly2))))
 
         (else
             ; one of them isn't convert which ever one is
             ; sparse to be dense and call helper function to calcualte addtion
-            (add-Poly (to-dense x 0) (to-dense y 0)))
-        )
-)
+            (add-Poly (to-dense poly1) (to-dense poly2)))))
 
 ; helper function to handle adding to polynomials together
-(define (add-Poly x y)
+(define (add-Poly poly1 poly2)
     (cond
         ;check if both lists are empty
-        ((and (empty? x) (empty? y) ) '())
+        ((and (empty? poly1) (empty? poly2) ) '())
 
-        ;x and y are both not empty, see if x is
-        ((empty? x)
-            (append (list (car y)) ( add-Poly x (cdr y))))
-
-        ;x isn't empty, so see check if y is empty
-        ((empty? y)
-
-            (append (list (car  x)) (add-Poly (cdr x)  y))
-        )
-
+        ;poly1 and y are both not empty, see if poly1 is
+        ((empty? poly1) (append (list (car poly2)) ( add-Poly poly1 (cdr poly2))))
+        ;poly1 isn't empty, so see check if y is empty
+        ((empty? poly2)  (append (list (car  poly1)) (add-Poly (cdr poly1)  poly2)))
         ; otherwise add
-        (else
-
-            (append (list (+ (car x ) (car y)))  (add-Poly (cdr x) (cdr y)))
-        )
-    )
-)
+        (else  (append (list (+ (car poly1 ) (car poly2)))  (add-Poly (cdr poly1) (cdr poly2))))))
 
 ; helper function to make a ploynomials coefficent negative
 ; primarly allows for the add-Poly fucntion to be reused
 (define (invert-coef polynoimal)
-    (map (lambda (x) (* -1 x)) polynoimal))
+    (map (lambda (poly1) (* -1 poly1)) polynoimal))
 
-; subtracts polynomial y from polynomial X
-; first checks the types of poly nomials
-(define (subtract x y)
+; subtracts polynomial poly2 from polynomial poly1
+; first checks the types of polynomials
+(define (subtract poly1 poly2)
     ; check if both polynomials are sparse
-    (if (and (is-sparse? x) (is-sparse? y))
+    (if (and (is-sparse? poly1) (is-sparse? poly2))
         ; both are sparse polynomials
-        (to-sparse (add-Poly (to-dense x 0) (invert-coef (to-dense y 0))) 0)
+        (to-sparse (add-Poly (to-dense poly1) (invert-coef (to-dense poly2))))
 
         ; one of them isn't convert which ever one is
         ; sparse to be dense and call helper function to calcualte addtion
-        (add-Poly (to-dense x 0) (invert-coef (to-dense y 0)))))
+        (add-Poly (to-dense poly1) (invert-coef (to-dense poly2)))))
 
-; helper function to multiply polynomial term x by term y
-(define (multiply-terms x y)
+#|
+###########################################################################
+    function in file definition
+############################################################################
+|#
+; helper function to multiply polynomial term poly1 by term y
+(define (multiply-terms poly1 poly2)
     (list (list
-        (* (car x) (car y))
+        (* (car poly1) (car poly2))
         ;cadr means get character of the next element form current point
-        (+ (cadr x) (cadr y)))))
+        (+ (cadr poly1) (cadr poly2)))))
 
-; helper function to apply polynomials y term to polynomial x
-(define (apply-y-to-x x y)
-    ; check if the end of the polynomial x ahs been reached
+; helper function to apply polynomials y term to polynomial poly1
+(define (apply-poly2-to-p1term poly1 poly2)
+    ; check if the end of the polynomial poly1 ahs been reached
     (cond
         ; check if y is empty
-        ((empty? x) '())
-        ;still not at end of polynomial so still able to apply y to x
+        ((empty? poly1) '())
+        ;still not at end of polynomial so still able to apply y to poly1
         (else
-           (append  (multiply-terms (car x) y) (apply-y-to-x (cdr x) y)))))
+           (append  (multiply-terms (car poly1) poly2) (apply-poly2-to-p1term (cdr poly1) poly2)))))
 
 ; helper function to move through the terms in polynomial y
-(define (multiply-poly x y)
-    (if (> (length y) 1)
-        ( if (> (length y) 2)
-            (append  (add (apply-y-to-x x (car y)) (multiply-poly x (cdr y))))
-            (append  (add (apply-y-to-x x (car y)) (apply-y-to-x x (cadr y))))
+(define (multiply-poly poly1 poly2)
+    (if (> (length poly2) 1)
+        ( if (> (length poly2) 2)
+            (append  (add (apply-poly2-to-p1term poly1 (car poly2)) (multiply-poly poly1 (cdr poly2))))
+            (append  (add (apply-poly2-to-p1term poly1 (car poly2)) (apply-poly2-to-p1term poly1 (cadr poly2))))
         )
-        (append(apply-y-to-x x (car y)))
+        (append(apply-poly2-to-p1term poly1 (car poly2)))
     ))
 
 ; function used to check types of polynomials pased in and convert the
 ; to the correct type following multipling
-(define (multiply x y)
+(define (multiply poly1 poly2)
     (cond
-        ((or (empty? x)(empty? y))
-            '(0)
-        )
-        ((or (is-zero? x)(is-zero? y))
+        ((or (is-zero? poly1)(is-zero? poly2))
             '(0)
         )
         ; check if both polynmoials are sparse
-        ((and (is-sparse? x) (is-sparse? y))
+        ((and (is-sparse? poly1) (is-sparse? poly2))
             ;check if output's empty
-            (multiply-poly x y)
+            (multiply-poly poly1 poly2)
         )
         ; polynomials are both not zero or sparse, meaning ones dense so output result
         ; as dense
         (else
-            (to-dense (multiply-poly (to-sparse x 0) (to-sparse y 0)) 0)
+            (to-dense (multiply-poly (to-sparse poly1) (to-sparse poly2)))
+        )))
 
+; helper function to divide terms
+; this uses the smae logic as the helper function
+; multiply-terms for multiply
+(define (div-terms term1 term2)
+
+    (list (list
+        (/ (car term1) (car term2)) ; divide term1 coef by term2 coef
+        (- (cadr term1) (cadr term2)))) ; subtract term2 power from term1 power
+)
+
+;helper function to get like terms
+; (define (get-like term1 term2)
+
+
+; )
+
+; helper function to manage divison of poly1 by poly2 
+; returns a liast that conatins the remainder and quotent
+(define (poly-div poly1 poly2)
+
+    (cond
+            
+        ; check if degree of poly1 is less then poly2
+        ; meaning that division is done
+        ((< (degree (reverse poly1)) (degree (reverse poly2))) ; breaks in some cases 
+            '()) 
+        ;otherwise continue dvision
+        (else
+            ; apply disivon to p1
+            ; divide terms  
+            (append (div-terms (car poly1) (car poly2)) 
+                    (poly-div (reverse (subtract (reverse poly1) 
+                        (multiply (reverse poly2) 
+                            (div-terms (car poly1) (car poly2))))) 
+                                poly2))
+        )))
+
+;divide a polynomial poly1(x) by poly2(x) and returns the quotient. You may assume
+;q(x) ̸= 0.
+(define (quotient poly1 poly2)
+    (cond
+        ; check if poly2 are 0
+        ((or (is-zero?  poly2) (empty? poly2)) -inf.0)
+        ;making sure both polys are sparse types
+        ((or (is-dense?  poly1) (is-dense?  poly2))
+            ; one poly was dense so just convert both and then output
+            ; dense
+            (to-dense(quotient (to-sparse poly1) (to-sparse poly2)))
         )
-    ))
+        ;valid input, and both are sparse so proceed
+        (else             
+            (reverse(poly-div (reverse poly1) (reverse poly2)))            
+        )
+    )
+)
 
-;function used to find the quotient of p(x) and q(x)
-; (define (quotient polyOne polyTwo x)
-;  ; is this still a polynomial
-;   (if (list? polyOne)
-;       ;make it an int
-;       (quotient (eval polyOne x) (eval polyTwo x) 0)
-;       ;is poly one negative?
-;       (if(negative? polyOne)
-;          ;are both poly's negative?
-;          (if(negative? polyTwo)
-;             ; now that we know how to deal with it, can we get any closer to 0?
-;             (if(positive? (- polyOne polyTwo))
-;                x
-;                (quotient (- polyOne polyTwo) polyTwo (+ x 1)))
-;             (if(positive? (+ polyOne polyTwo))
-;                x
-;                (quotient (+ polyOne polyTwo) polyTwo (- x 1))))
-;          ;poly one is positive, is polytwo negative?
-;          (if(negative? polyTwo)
-;             ;now that we know how to deal with it, can we get closer to 0?
-;             (if(negative? (+ polyOne polyTwo))
-;                x
-;                (quotient (+ polyOne polyTwo) polyTwo (- x 1)))
-;             (if(negative? (- polyOne polyTwo))
-;                x
-;                (quotient (- polyOne polyTwo) polyTwo (+ x 1)))))))
+;helper function to get the remainder
+(define(get-remainder poly1 poly2)
+    (if (is-zero? (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2) poly1))
+    '(0)
+    (subtract poly1 (multiply(reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)))
+)
 
-;function used to find the remainder of p(x) and q(x)
-;works the same as quotient, just returns remainder instead
-; (define (remainder polyOne polyTwo x)
-;  ; is this still a polynomial
-;   (if (list? polyOne)
-;       ;make it an int
-;       (remainder (eval polyOne x) (eval polyTwo x) 0)
-;       ;is poly one negative?
-;       (if(negative? polyOne)
-;          ;are both poly's negative?
-;          (if(negative? polyTwo)
-;             ; now that we know how to deal with it, can we get any closer to 0?
-;             (if(positive? (- polyOne polyTwo))
-;                polyOne
-;                (remainder (- polyOne polyTwo) polyTwo x))
-;             (if(positive? (+ polyOne polyTwo))
-;                polyOne
-;                (remainder (+ polyOne polyTwo) polyTwo  x)))
-;          ;poly one is positive, is polytwo negative?
-;          (if(negative? polyTwo)
-;             ;now that we know how to deal with it, can we get closer to 0?
-;             (if(negative? (+ polyOne polyTwo))
-;                polyOne
-;                (remainder (+ polyOne polyTwo) polyTwo x))
-;             (if(negative? (- polyOne polyTwo))
-;                polyOne
-;                (remainder (- polyOne polyTwo) polyTwo  x))))))
+; divide a polynomial p(x) by q(x) and returns the remainder. You may assume
+; q(x) ̸= 0
+(define (remainder poly1 poly2 )
+    (cond
+        ; check if either are 0
+        ((or (is-zero?  poly2) (empty? poly2)) -inf.0)
+        ;making sure both polys are sparse types
+        ((or (is-dense?  poly1) (is-dense?  poly2))
+            ; one poly was dense so just convert both and then output
+            ; dense
+            (to-dense(remainder (to-sparse poly1) (to-sparse poly2)))
+        )
+        ;valid input, and both are sparse so proceed
+        (else             
+            (get-remainder poly1 poly2)            
+        )
+    )   
+)
 
 ; helper function of derivative that applys the power rule of a polynomial
 ; passed into it
-
-(define (power-rule x)
+(define (power-rule poly1)
     ;making sure to not pass back negatives
     (cond
         ; if power is less then 0 becomes zero then just return empty list
-        ((< (- (cadr x) 1) 0)
-            '()
-        )
+        ((< (- (cadr poly1) 1) 0) '() )
         (else
-            (list(list (* (car x) (cadr x))
-                (- (cadr x) 1))))
-    )
-)
+            (list(list (* (car poly1) (cadr poly1))
+                (- (cadr poly1) 1))))))
 
-; finds the dervative of a polynomial  x
+; finds the dervative of a polynomial  poly1
 ; works for both sparse and dense representations of polynomials
-(define (derivative x)
+(define (derivative poly1)
     (cond
         ;check if polynomial is empty and or at it's end
-        ((empty? x) '())
-
+        ((empty? poly1) '())
         ; check if sparse
-        ((is-sparse? x)
+        ((is-sparse? poly1)
 
-           (append (power-rule (car x)) (derivative (cdr x)))
+           (append (power-rule (car poly1)) (derivative (cdr poly1)))
         )
-
         ; not empty, or sparse meaning it is dense
         (else
-            (to-dense (derivative (to-sparse x 0)) 0)
-        )
+            (to-dense (derivative (to-sparse poly1))))))
+
+;helper function to calcuatle gcd inorder to return proper
+; type
+(define (find-gcd poly1 poly2)
+    ; (display "gcd")(display poly1) (display " | ") (display poly1)(newline)
+    ; checking if poly 2 is 0 or they both equil
+    ; which means that the gcd has been found
+    (cond
+        ((or (is-zero? poly2)) poly1)
+        ; ((empty? (cdr (division poly1 poly2))) poly1)
+        (else (find-gcd poly2 (remainder poly1 poly2)))
     )
 )
 
-; multiplies a polynomial by a coeficent (used for gcd)
-; only works with dense
-;(define (scale x y)
-  ; multiply every variable in the list by x
- ; (map (lambda (t) (* x t)) y))
-
-
-; Function to find the GCD of two polynomials
-;(define (gcd x y)
- ; (if (or (zero? (degree x)) (zero? (degree y)))
-;      x
-;      (if (or (is-sparse? x) (is-sparse? y))
-;          (if (and (is-sparse? x) (is-sparse? y))
-;              (to-sparse(gcd (to-dense x) (to-dense y)))
-;              (gcd (to-dense x) (to-dense y)))
-;          (gcd (subtract x (scale (exact->inexact (/ (car x) (car y))) y)) (subtract y (scale (exact->inexact (/ (car y) (car x))) x))))))
+; given two polynomials, returns their greatest common divisor. If the greatest common
+; divisor is non-zero, ensures that the leading coefficient (coefficient corresponding to
+; highest power of x) is 1 by multiplying by an appropriate constant
+(define (gcd poly1 poly2) ;fix this
+    ;checking type
+    (cond
+        ; check if both polynmoials are sparse
+        ((and (is-sparse? poly1) (is-sparse? poly2))
+            ;check if output's empty
+            (find-gcd poly1 poly2)
+        )
+        ; polynomials are both not zero or sparse, meaning ones dense so output result
+        ; as dense
+        (else
+            (to-dense (find-gcd (to-sparse poly1) (to-sparse poly2)))
+        )))
 
 #|
 ############################################################################
     Test Cases
 ############################################################################
 |#
+; bound cases empty poly
+(define EMPTY '()) ; empty poly
 
-;testing is-sparse?
-(display "test case for is-sparse?")
-(newline)
-(display(is-sparse?  '(1 2 3 0 0))) ; return false
-(newline)
-(display(is-sparse?  '((1 0) (2 1) (3 2) (9 8)))) ; return true
-(newline)
+; sparse test cases
+(define S0 '((0 0)))
+(define S1 '((1 0) (1 1))) ;  1 + 1x
+(define S2 '((4 1) (6 2) (2 3))) ; 4x + 6X^2 + 2x^3
+(define S3 '((2 1) (1 2))) ; 2x + 1x^2
+(define S4 '((4 0) (3 1) (2 2) (4 3))) ; 4 + 3x - 2x^2 + 4x^3
 
-; testing to-sparse
-(display "test case for to-sparse")
-(newline)
-(display(to-sparse  '((1 0) (2 1) (3 2) (9 8)) 0)) ; just returns  ((1 0) (2 1) (3 2) (9 8))
-(newline)
-(display(to-sparse  '(1 2 3 0 0) 0)) ; converts
-(newline)
-(display(to-sparse  '(0 0 1 4 6 7 0) 0)) ; convertss
-(newline)
-(display(is-sparse? (to-sparse '(1 2 3 0 0) 0))) ; returns t
-(newline)
+; dense test cases
+(define D0 '(0)) ; zero poly
+(define D1 '(1 1)) ; 1 + 1x
+(define D2 '(0 4 6 2)) ; 4x + 6X^2 + 2^3
+(define D3 '(0 2 1)) ; 2x + 1x^2
+(define D4 '(-4 -8 3 1)) ; -4 + 8X + 3X^2 + 1
+(define D5 '( -2 1)) ; -2 + X^2
+(define D6 '(-7 23 6 -2 3)) ; -7 + 23x + 6x^2 -2x^3 + 3x^4
+(define D7 '(5 -2 1)) ; 5 -2X + X^2
 
-; testing is-dense
-(display "test case for is-dense")
-(newline)
-(display(is-sparse?  '(1 2 3 0 0))) ; return True
-(newline)
-(display(is-sparse?  '((1 0) (2 1) (3 2) (9 8)))) ; return False
-(newline)
-; testing to-dense
-(display "test case for to-dense")
-(newline)
-(display (to-dense '(1 2 3 4 5) 0)) ; just returns
-(newline)
-(display (to-dense '((1 0) (2 1) (3 2) (9 8)) 0)) ; converts with a lot of 0's between 3 and 9
-(newline)
-(display (to-dense '((3 2) (5 5)) 0)) ; converts, should add 2 zeros before 3 and 2 after
-(newline)
-;testing is-zero?
-(display "test case for is-zero?")
-(newline)
-(display(is-zero? `(0))) ; true
-(newline)
-(display(is-zero? '((0 0)))) ; true
-(newline)
-(display(is-zero? '((1 0) (2 1) (3 2) (9 8)))) ; false
-(newline)
-(display(is-zero? '(1 2 3 0 0))) ; false
-(newline)
-(display(is-zero? '())) ;
-(newline)
+; testing cases foris-zero
+; (newline)
+; (displayln "test case for is-zero")
+; (displayln (is-zero?  EMPTY)) ; = t
+; (displayln (is-zero?  S0)) ; = t
+; (displayln (is-zero?  S1)) ; = f
+; (displayln (is-zero?  S3)) ; = f
+; (displayln (is-zero?  S4)) ; = f
+; ; dense and spare multiply tests
+; (displayln (is-zero?  D0))  ; = t
+; (displayln (is-zero?  D1))   ; = f
+; (displayln (is-zero?  D3))   ; = f
+; (displayln (is-zero?  S4))   ; = f
 
-; testing degree
-(display "test case for degree")
-(newline)
-(display(degree '(1 2 3 0 0))) ; x^0 + 2x^1 + 3x^2 should return degree 2
-(newline)
-
-(display(degree '((1 0) (2 1) (3 2) (9 8)))) ; x^0 + 2x^1 + 3x^2 + 9x^ 8 should return degree 8
-(newline)
-
-; testing coeff
-(display "test case for coeff")
-(newline)
-
-(display (coeff `((24 0) (10 1) (6 2)) 2)) ; returns 6
-(newline)
-(display (coeff `(2 3 6) 2)) ; returns 6
-(newline)
-(display (coeff `(2 3 6) 1)) ; returns 3
-(newline)
-(display (coeff `(2 3 6) (degree `(2 3 6)))) ; returns 6
-(newline)
+; ; testing multiply-polys
+; (newline)
+; (displayln "test case for multiply")
+; (displayln (multiply  EMPTY EMPTY)) ; = (0)
+; (displayln (multiply  S0 S1)) ; = (0) / ((1 0) (1 1))
+; (displayln (multiply  S1 S2)) ; = ((4 1) (10 2) (8 3) (2 4))
+; (displayln (multiply  S3 S2)) ; = ((8 2) (16 3) (10 4) (2 5))
+; (displayln (multiply  S4 S2)) ; = ((16 1) (36 2) (34 3) (34 4) (28 5) (8 6))
+; ; dense and spare multiply tests
+; (displayln (multiply   D0 D1))  ; = (0)
+; (displayln (multiply  D1 D2))   ; = (0 4 10 8 2)
+; (displayln (multiply  D3 D2))   ; = (0 8 16 10 2)
+; (displayln (multiply  S4 D2))   ; = (0 16 36 34 34 28 8)
 
 
-;testing eval
-(display "test case for eval")
 (newline)
-(display(eval  '(1 2 3 0 0) 2)) ;  = 17
-(newline)
-(display(eval  '((1 0) (2 1) (3 2) (9 8)) 2)) ; = 2321
-(newline)
+(displayln "test case for quotient")
+(displayln (quotient S0 S1)) ; = ()
+(displayln (quotient S1 S0)) ; = -inf.0
+(displayln (quotient S2 S1)) ; = ((4 1) (2 2))
+(displayln (quotient S4 S2)) ; = (2 0)
+(displayln (quotient D1 D0)) ; = -inf.0
+(displayln (quotient D3 D1)) ; = x + 1
+(displayln (quotient D4 D5 )) ; = x^2 + 5x + 2
+(displayln (quotient D6 D7)) ;3x^2 + 4x -1
 
-;testing add
-(display "test case for add")
 (newline)
-(display(add '(1 2 3) '(3 2 1)) );= (4 4 4)
-(newline)
-(display(add '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2))) );= ((1, 0) (3 1) (5 2) (3 0))
-(newline)
-(display(add '((1 1) (2 2) (3 3) (6 5)) '(3 2 1))) ;= ((3 3 3 3 0 6 )
-(newline)
-(display(add '((1 1) (2 2) (3 3) (6 5)) '())) ; = empty list
-(newline)
+(displayln "test case for remainder")
+(displayln (remainder S0 S1)) ; = (0)
+(displayln (remainder S1 S0)) ; = -inf.0
+(displayln (remainder D4 D5)) ; = (0)
+(displayln (remainder D6 D7)) ; = x -2
 
-;testing sub
-(display "test case for sub")
-(newline)
-(display(subtract '(1 2 3) '(3 2 1)) ) ; = (-2 0 -2)
-(newline)
-(display(subtract '((1 1) (2 2) (3 3)) '((1 0) (2 1) (3 2)))); = ((1, 0) (-2 1) (1 2) (3 0))
-(newline)
-(display(subtract '((1 1) (2 2) (3 3) (6 5)) '(3 2 1)) ) ;= (-3 -1 1 3 0 6 )
-(newline)
+; ;quotient testing
+; (display "test case for quotient")
+; remainder and quote need work still 
 
-; testing multiply-polys
-(display "test case for multiply")
-(newline)
-(display(multiply  '((2  1) (2  3)) '((4  2)))) ; = 8x^3+8x^5
-(newline)
-(display(multiply  '((2  1) (2  3)) '((4  2) (3 4)))) ; = 8x^3+ 14x^5 + 6x^7
-(newline)
+; (display "test case for derivative")
+; (newline)
+; (display (derivative '((5 0) (-2 1) (3 2)) )); = ((-2 0) (6 1))
+; (newline)
+; (display (derivative '((5 0) (-2 1) (3 2) (4 5)) )); = ((-2 0) (6 1) (20 4))
+; (newline)
+; (display (derivative '(5 -2 3 0 0 4 ))) ; = (-2 6  0  0 20)
+; (newline)
+; (display (derivative '())) ; = empty list
+; (newline)
 
-(display(multiply  '(2 1 2 3) '(4  2 3 4))) ; = 12x^8 + 12x^7 + 12x^6 + 23x^5 + 22x^4 +20x^3 + 12x^2 + 6x + 8
-(newline)
-(display(multiply  '(0) '(2 1 2))) ; 0
-(newline)
-(display(multiply  '() '())) ; empty
-(newline)
+; (display "test case for gcd")
+; (newline)
+; (display (gcd '((4 0) (-8 1) (6 2) (7 3)) '((-2 0) (1 1) (1 3)))) ; 
+; (newline)
+; (display (gcd '(0 4 6 2) '( 0 2 1 ) )) ; = x^2 - 2x
+; (newline)
+; (display (gcd '((2 0) (-12 1) (18 2) (-12 3) (3 4)) '((4 0) (-4 1) (1 2)))) ; = x^2 - 4x + 4 2 -12x+18x^2-12x^3+
+; (newline)
 
-(display "test case for quotient")
-(newline)
-(display(quotient '((2 1) (3 4)) '((1 1) (2 2)) 5)) ; = 34
-(newline)
-
-(display(quotient '((2 1) (3 4)) '((-1 1) (-2 2)) 5)) ; = -34
-(newline)
-
-(display(quotient '((-2 1) (-3 4)) '((1 1) (2 2)) 5)) ;= -34
-(newline)
-
-(display(quotient '((-2 1) (-3 4)) '((-1 1) (-2 2)) 5)) ;= 34
-(newline)
-(display "test case for remainder")
-(newline)
-(display(remainder '((2 1) (3 4)) '((2 1) (2 2)) 5)) ; = 15
-(newline)
-
-(display(remainder '((2 1) (3 4)) '((-1 1) (-2 2)) 5)) ; = 15
-(newline)
-
-(display(remainder '((-2 1) (-3 4)) '((1 1) (2 2)) 5)) ; = -15
-(newline)
-
-(display(remainder '((-2 1) (-3 4)) '((-1 1) (-2 2)) 5)) ; = -15
-(newline)
-(display "test case for derivative")
-(newline)
-(display (derivative '((5 0) (-2 1) (3 2)) )); = ((-2 0) (6 1))
-(newline)
-
-(display (derivative '((5 0) (-2 1) (3 2) (4 5)) )); = ((-2 0) (6 1) (20 4))
-(newline)
-
-(display (derivative '(5 -2 3 0 0 4 ))) ; = (-2 6  0  0 20)
-(newline)
-(display (derivative '())) ; = empty list
-(newline)
-
-;(display "test for gcd")
-;(newline)
-;(display (gcd '(1 2 3 4) '(1 2)))
+;7x^3 + 6x^2 - 8x + 4 and q(x) = x^3 + x - 2.

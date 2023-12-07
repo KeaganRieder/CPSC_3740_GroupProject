@@ -4,3 +4,26 @@
     ; (display "Quotient:")(display(reverse (poly-div (reverse poly1) (reverse poly2))))(newline)
     ; (display "divisor:") (display (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2))(newline)
     ; (display "remainder") (display (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)poly1))(newline)(newline)
+
+
+    #| ; handles divison of polynomials
+; finds the quotent and quoent of a divison 
+; between polynomials
+; (define (division poly1 poly2)
+;     (cond
+;         ((empty? poly1)
+;             (cons '(0) '((0)))
+;         )
+;         ; check if either are 0
+;         ((or (is-zero?  poly2) (empty? poly2)) -inf.0)
+;         ;making sure both polys are sparse types
+;         ((or (is-dense?  poly1) (is-dense?  poly2))
+;             ; one poly was dense so just convert both
+;             ((division (to-sparse poly1) (to-sparse poly2)))
+;         )
+;         ;it's valid so proceed with divison
+;         (else             
+;             (reverse(poly-div (reverse poly1) (reverse poly2)))            
+;         )
+;     )
+; ) |#
