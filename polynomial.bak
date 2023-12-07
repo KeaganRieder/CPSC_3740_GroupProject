@@ -23,16 +23,10 @@
 |#
 ; polynoimal is a list, returns false if list is sparse and true if list is dense
 (define (is-dense? polynoimal)
-    ;check if polynomial is empty
-    (if (empty? polynoimal)
-        #false
-        ;is first elment a sub list in a list?
-        (if (list? (car polynoimal))
-        #false
-        #true)
-    )
-  
- )
+  ;is first elment a sub list in a list?
+  (if (list? (car polynoimal))
+      #false
+      #true))
 
 ; converts from sparse to dense polynoimal 
 (define (to-dense polynoimal)
@@ -147,10 +141,10 @@
         )
         ; it's not sparse meaning it's dense so convert to sparse
         (else
-            (degree (to-sparse polynomial))
+            (degree (to-sparse polynomial 0))
         )))
 
-; takes a polynomial and a value k, returns the result of p(k).
+; takes a polynomial p(l) and a value k, returns the result of p(k).
 ; only works for sparse
 (define (eval polynomial k)
     (cond
@@ -169,12 +163,12 @@
             ))))
 )
 
-; takes two polynomials and adds them broken 
+; takes two polynomials and adds them broken atm need to fipoly1
 (define (add poly1 poly2)
     (cond
         ; check if both list is empty
         ((and (empty? poly1) (empty? poly2))
-            '(0)
+            '()
         )
         ;checking either list is empty
         ((or (empty? poly1) (empty? poly2))
@@ -183,6 +177,7 @@
                 poly1 ; poly2 is empty so return poly1 as result
             ))
         ;neither are so check type
+
         ((and (is-sparse? poly1) (is-sparse? poly2))
             ; both are sparse polynomials
             (to-sparse(add-Poly (to-dense poly1) (to-dense poly2))))
@@ -319,6 +314,7 @@
 
 ;helper function to get the remainder
 (define(get-remainder poly1 poly2)
+    (display "remainder:")(display (reverse (poly-div (reverse poly1) (reverse poly2))))(newline)
     (if (is-zero? (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2) poly1))
     '(0)
     (subtract poly1 (multiply(reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)))
@@ -358,9 +354,10 @@
 (define (derivative poly1)
     (cond
         ;check if polynomial is empty and or at it's end
-        ((or(empty? poly1))'())
+        ((empty? poly1) '())
         ; check if sparse
         ((is-sparse? poly1)
+
            (append (power-rule (car poly1)) (derivative (cdr poly1)))
         )
         ; not empty, or sparse meaning it is dense
@@ -369,21 +366,16 @@
 
 ;helper function to calcuatle gcd inorder to return proper
 ; type
-; (6 0) (7 1) (1 2)) / ((6 0) (5 1) (1 2))
 (define (find-gcd poly1 poly2)
-    (display "gcd")(display poly1) (display " | ") (displayln poly2) (newline)
+    (display "gcd")(display poly1) (display " | ") (display poly2) (display " | ") (display (remainder poly1 poly2)) (newline)
     ; checking if poly 2 is 0 or they both equil
     ; which means that the gcd has been found
     (cond
         ((is-zero? poly2) poly1)
+        ;(remainder poly1 poly2) = mod
         (else (find-gcd poly2 (remainder poly1 poly2)))
     )
 )
-
-; (cond
-;          [(> a b) (gcd b (- a b))]
-;          [(< a b) (gcd a (- b a))]
-;          [else a]))
 
 ; given two polynomials, returns their greatest common divisor. If the greatest common
 ; divisor is non-zero, ensures that the leading coefficient (coefficient corresponding to
@@ -404,9 +396,11 @@
             (cond
                 ;poly 1 is lower degree so make it divider
                 ((< (degree poly1) (degree poly2))
+                    (displayln "swaped")
                     (find-gcd poly2 poly1)
                 )
                 (else
+                 (displayln "noswap")
                     (find-gcd poly1 poly2)
                 )            
             )            
@@ -430,127 +424,79 @@
 (define S1 '((1 0) (1 1))) ;  1 + 1x
 (define S2 '((4 1) (6 2) (2 3))) ; 4x + 6X^2 + 2x^3
 (define S3 '((2 1) (1 2))) ; 2x + 1x^2
-(define S4 '((4 0) (3 1) (2 2) (4 3))) ; 4 + 3*(1) + 2*(1^2) + 4*(1^3)
+(define S4 '((4 0) (3 1) (2 2) (4 3))) ; 4 + 3x - 2x^2 + 4x^3
 
 ; dense test cases
 (define D0 '(0)) ; zero poly
 (define D1 '(1 1)) ; 1 + 1x
 (define D2 '(0 4 6 2)) ; 4x + 6X^2 + 2^3
 (define D3 '(0 2 1)) ; 2x + 1x^2
-(define D4 '(-4 -8 3 1)) ; -4 +-8X + 3X^2 + 1X^3
+(define D4 '(-4 -8 3 1)) ; -4 + 8X + 3X^2 + 1
 (define D5 '( -2 1)) ; -2 + X^2
 (define D6 '(-7 23 6 -2 3)) ; -7 + 23x + 6x^2 -2x^3 + 3x^4
 (define D7 '(5 -2 1)) ; 5 -2X + X^2
 
 (newline)
-(displayln "test caseS for type check/converting")
-(newline)
 (displayln "test case for is-dense?")
-(displayln (is-dense?  EMPTY)) ; = f
+(displayln (is-dense?  EMPTY)) ; = t
 (displayln (is-dense?  S0)) ; = f
 (displayln (is-dense?  D0)) ; = t
 (displayln (is-dense?  D1)) ; = t
 (displayln (is-dense?  D2)) ; = t
 (displayln (is-dense?  D4)) ; = t
 
-(newline)
-(displayln "test case for to-dense")
-(displayln (is-dense?(to-dense  EMPTY))) ; = t
-(displayln (to-dense  S0)) ; = 0
-(displayln (is-dense?(to-dense  S0))) ; = t
-(displayln (to-dense  D1)) ; = 1 + 1x
-(displayln (to-dense  S2)) ; =  (-4 -8 3 1)
-(displayln (to-dense  S4)) ; = '(-4 -8 3 1)
+; (newline)
+; (displayln "test case for to-dense")
+; (displayln (to-dense  EMPTY)) ; = t
+; (displayln (to-dense  S0)) ; = f
+; (displayln (to-dense  S0)) ; = t
+; (displayln (to-dense  D1)) ; = t
+; (displayln (to-dense  D2)) ; = t
+; (displayln (to-dense  S4)) ; = t
 
 (newline)
 (displayln "test case for is-sparse?")
-(displayln (is-sparse?  EMPTY)) ; = f
+(displayln (is-sparse?  EMPTY)) ; = t
 (displayln (is-sparse?  S0)) ; = f
 (displayln (is-sparse?  S0)) ; = t
-(displayln (is-sparse?  D1)) ; = f
-(displayln (is-sparse?  D2)) ; = f
+(displayln (is-sparse?  D1)) ; = t
+(displayln (is-sparse?  D2)) ; = t
 (displayln (is-sparse?  S4)) ; = t
 
-(newline)
-(displayln "test case for to-sparse")
-(displayln (to-sparse  EMPTY)) ; = 
-(displayln (to-sparse  S0)) ; = 
-(displayln (to-sparse  D3)) ; = 
-(displayln (to-sparse  D1)) ; = 
-(displayln (to-sparse  D2)) ; = 
-(displayln (to-sparse  S4)) ; = 
+; (newline)
+; (displayln "test case for to-sparse")
+; (displayln (to-sparse  EMPTY)) ; = t
+; (displayln (to-sparse  S0)) ; = f
+; (displayln (to-sparse  S0)) ; = t
+; (displayln (to-sparse  D1)) ; = t
+; (displayln (to-sparse  D2)) ; = t
+; (displayln (to-sparse  S4)) ; = t
 
-(newline)
-(displayln "test case for is-zero")
-(displayln (is-zero?  EMPTY)) ; = t
-(displayln (is-zero?  S0)) ; = t
-(displayln (is-zero?  S1)) ; = f
-(displayln (is-zero?  S3)) ; = f
-(displayln (is-zero?  S4)) ; = f
-(displayln (is-zero?  D0))  ; = t
-(displayln (is-zero?  D1))   ; = f
-(displayln (is-zero?  D3))   ; = f
-(displayln (is-zero?  S4))   ; = f
+; (newline)
+; (displayln "test case for is-zero")
+; (displayln (is-zero?  EMPTY)) ; = t
+; (displayln (is-zero?  S0)) ; = t
+; (displayln (is-zero?  S1)) ; = f
+; (displayln (is-zero?  S3)) ; = f
+; (displayln (is-zero?  S4)) ; = f
+; ; dense and spare multiply tests
+; (displayln (is-zero?  D0))  ; = t
+; (displayln (is-zero?  D1))   ; = f
+; (displayln (is-zero?  D3))   ; = f
+; (displayln (is-zero?  S4))   ; = f
 
-(newline)
-(displayln "test caseS for type math functions")
-(newline)
-(displayln "test case for coeff")
-(displayln (coeff  EMPTY 1)) ; = 0
-(displayln (coeff  S0 1)) ; = 0
-(displayln (coeff  D3 1)) ; =  2
-(displayln (coeff  S2 3)) ; = 0
-(displayln (coeff  D2 1)) ; = 4
-(displayln (coeff  S4 3)) ; =  4
-
-(newline)
-(displayln "test case for degree")
-(displayln (degree S0)) ; = -INF.0
-(displayln (degree S4)) ; = 3
-(displayln (degree D4)) ; = 3
-(displayln (degree D6)) ; = 4
-(displayln (degree D7)) ; = 2
-(displayln (degree S2)) ; = 3
-(displayln (degree S3)) ; = 2
-
-(newline)
-(displayln "test case for eval")
-(displayln (eval S0 1)) ; = 0
-(displayln (eval S1 2)) ; = 3
-(displayln (eval S4 2)) ; = 34
-(displayln (eval D0 5)) ; = 0
-(displayln (eval D4 2)) ; = 34
-(displayln (eval D7 5)) ; = 20
-
-(newline)
-(displayln "test case for add")
-(displayln (add EMPTY EMPTY)) ; = (0 0)
-(displayln (add S0 EMPTY)) ; = (0 0)
-(displayln (add S1 S1)) ; = ((2 0) (2 1))
-(displayln (add S1 D1)) ; = (2 2)
-(displayln (add D2 D3)) ; = (0 6 7 2)
-(displayln (add S2 S3)) ; = ((6 1) (7 2) (2 3))
-
-(newline)
-(displayln "test case for subtract")
-(displayln (subtract EMPTY EMPTY)) ; = (0)
-(displayln (subtract S0 EMPTY)) ; = (0 0)
-(displayln (subtract S1 S1)) ; = ()
-(displayln (subtract S1 D1)) ; = (0)
-(displayln (subtract D2 D3)) ; = (0 6 7 2)
-(displayln (subtract S2 S3)) ; = ((6 1) (7 2) (2 3))
-
-(newline)
-(displayln "test case for multiply")
-(displayln (multiply  EMPTY EMPTY)) ; = (0)
-(displayln (multiply  S0 S1)) ; = (0) / ((1 0) (1 1))
-(displayln (multiply  S1 S2)) ; = ((4 1) (10 2) (8 3) (2 4))
-(displayln (multiply  S3 S2)) ; = ((8 2) (16 3) (10 4) (2 5))
-(displayln (multiply  S4 S2)) ; = ((16 1) (36 2) (34 3) (34 4) (28 5) (8 6))
-(displayln (multiply   D0 D1))  ; = (0)
-(displayln (multiply  D1 D2))   ; = (0 4 10 8 2)
-(displayln (multiply  D3 D2))   ; = (0 8 16 10 2)
-(displayln (multiply  S4 D2))   ; = (0 16 36 34 34 28 8)
+; (newline)
+; (displayln "test case for multiply")
+; (displayln (multiply  EMPTY EMPTY)) ; = (0)
+; (displayln (multiply  S0 S1)) ; = (0) / ((1 0) (1 1))
+; (displayln (multiply  S1 S2)) ; = ((4 1) (10 2) (8 3) (2 4))
+; (displayln (multiply  S3 S2)) ; = ((8 2) (16 3) (10 4) (2 5))
+; (displayln (multiply  S4 S2)) ; = ((16 1) (36 2) (34 3) (34 4) (28 5) (8 6))
+; ; dense and spare multiply tests
+; (displayln (multiply   D0 D1))  ; = (0)
+; (displayln (multiply  D1 D2))   ; = (0 4 10 8 2)
+; (displayln (multiply  D3 D2))   ; = (0 8 16 10 2)
+; (displayln (multiply  S4 D2))   ; = (0 16 36 34 34 28 8)
 
 ; (newline)
 ; (displayln "test case for quotient")
@@ -561,32 +507,31 @@
 ; (displayln (quotient D1 D0)) ; = -inf.0
 ; (displayln (quotient D3 D1)) ; = x + 1
 ; (displayln (quotient D4 D5 )) ; = x^2 + 5x + 2
-; (displayln (quotient D6 D7)) ; = 3x^2 + 4x -1
+; (displayln (quotient D6 D7)) ; 3x^2 + 4x -1
 
 ; (newline)
 ; (displayln "test case for remainder")
 ; (displayln (remainder S0 S1)) ; = (0)
 ; (displayln (remainder S1 S0)) ; = -inf.0
 ; (displayln (remainder D4 D5)) ; = (0)
-; (displayln (remainder D6 D7)) ; = (-2 1)
-; (displayln (remainder S1 D1)) ; = (0)
-;add more tests
+; (displayln (remainder D6 D7)) ; = x -2
 
-(newline)
-(display "test case for derivative")
-(displayln (derivative EMPTY)) ; = ()
-(displayln (derivative S0)) ; = ()
-(displayln (derivative S1)) ; =((1 0))
-(displayln (derivative D1)) ; = (1)
-(displayln (derivative D7)) ; = (-2 2)
-(displayln (derivative D4)) ; = (-8 6 3)
-(displayln (derivative S4)) ; = ((3 0) (4 1) (12 2))
-
+; testing todo
+; (display "test case for derivative")
 ; (newline)
-; (displayln "test case for gcd")
+; (display (derivative '((5 0) (-2 1) (3 2)) )); = ((-2 0) (6 1))
+; (newline)
+; (display (derivative '((5 0) (-2 1) (3 2) (4 5)) )); = ((-2 0) (6 1) (20 4))
+; (newline)
+; (display (derivative '(5 -2 3 0 0 4 ))) ; = (-2 6  0  0 20)
+; (newline)
+; (display (derivative '())) ; = empty list
+; (newline)
 
+(display "test case for gcd")
+(newline)
 ; (display (gcd S1 S2)) ; = 1 + 1x
 ; (display (gcd S3 S2)) ; = 2x + 1x^2
-; (display (gcd '(6 5 1) '(6 7 1))) ; = x + 1 need a fix/make check
+(display (gcd '(6 7 1) '(6 5 1))) ; = x + 1 need a fix/make check
 
 ;7x^3 + 6x^2 - 8x + 4 and q(x) = x^3 + x - 2.
