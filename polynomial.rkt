@@ -278,7 +278,9 @@
 )
 
 ; helper function to manage divison of poly1 by poly2 
-; returns a liast that conatins the remainder and quotent
+; first flips them to make them in order from heighst to lowest degree
+; then divides
+; returns the quotient
 (define (poly-div poly1 poly2)
 
     (cond
@@ -298,8 +300,7 @@
                                 poly2))
         )))
 
-;divide a polynomial poly1(x) by poly2(x) and returns the quotient. You may assume
-;q(x) ̸= 0.
+;divide a polynomial poly1(x) by poly2(x) and returns the quotient. 
 (define (quotient poly1 poly2)
     (cond
         ; check if poly2 are 0
@@ -313,19 +314,18 @@
         ;valid input, and both are sparse so proceed
         (else             
             (reverse(poly-div (reverse poly1) (reverse poly2)))            
-        )
-    )
-)
+        )))
 
 ;helper function to get the remainder
 (define(get-remainder poly1 poly2)
+    ; poly1 - poly2 * (poly-div (reverse poly1) (reverse poly2)) = R
     (if (is-zero? (subtract (multiply (reverse (poly-div (reverse poly1) (reverse poly2)))  poly2) poly1))
     '(0)
-    (subtract poly1 (multiply(reverse (poly-div (reverse poly1) (reverse poly2)))  poly2)))
-)
+    (subtract poly1 (multiply
+        (reverse (poly-div (reverse poly1) (reverse poly2))) 
+             poly2))))
 
-; divide a polynomial p(x) by q(x) and returns the remainder. You may assume
-; q(x) ̸= 0
+; divide a polynomial p(x) by q(x) and returns the remainder.
 (define (remainder poly1 poly2 )
     (cond
         ; check if either are 0
@@ -367,23 +367,25 @@
         (else
             (to-dense (derivative (to-sparse poly1))))))
 
-;helper function to calcuatle gcd inorder to return proper
+; helper function to calcuatle gcd inorder to return proper
 ; type
-; (6 0) (7 1) (1 2)) / ((6 0) (5 1) (1 2))
-(define (find-gcd poly1 poly2)
-    (display "gcd")(display poly1) (display " | ") (displayln poly2) (newline)
+(define (find-gcd poly1 poly2) ; NEED CHECK FO IF LEADING VALUE OF GCD  IS NONE 0
     ; checking if poly 2 is 0 or they both equil
     ; which means that the gcd has been found
     (cond
-        ((is-zero? poly2) poly1)
+        ; pol2 is zero meaning gcds found so normialize it
+        ((is-zero? poly2) (to-sparse (normalize-gcd (to-dense poly1) 
+            (coeff poly1 (degree poly1)))))
+    
         (else (find-gcd poly2 (remainder poly1 poly2)))
     )
 )
 
-; (cond
-;          [(> a b) (gcd b (- a b))]
-;          [(< a b) (gcd a (- b a))]
-;          [else a]))
+; helper function which normalizes the gcd by divided the polynomial by
+; the highest degree's coefficent
+(define (normalize-gcd Polynomial coefficent)
+  (map (lambda (term) (/ term coefficent)) Polynomial)  
+)
 
 ; given two polynomials, returns their greatest common divisor. If the greatest common
 ; divisor is non-zero, ensures that the leading coefficient (coefficient corresponding to
@@ -430,7 +432,7 @@
 (define S1 '((1 0) (1 1))) ;  1 + 1x
 (define S2 '((4 1) (6 2) (2 3))) ; 4x + 6X^2 + 2x^3
 (define S3 '((2 1) (1 2))) ; 2x + 1x^2
-(define S4 '((4 0) (3 1) (2 2) (4 3))) ; 4 + 3*(1) + 2*(1^2) + 4*(1^3)
+(define S4 '((4 0) (3 1) (2 2) (4 3))) ; 4 + 3x + 2x^2) + 4x^3)
 
 ; dense test cases
 (define D0 '(0)) ; zero poly
@@ -442,115 +444,115 @@
 (define D6 '(-7 23 6 -2 3)) ; -7 + 23x + 6x^2 -2x^3 + 3x^4
 (define D7 '(5 -2 1)) ; 5 -2X + X^2
 
-(newline)
-(displayln "test caseS for type check/converting")
-(newline)
-(displayln "test case for is-dense?")
-(displayln (is-dense?  EMPTY)) ; = f
-(displayln (is-dense?  S0)) ; = f
-(displayln (is-dense?  D0)) ; = t
-(displayln (is-dense?  D1)) ; = t
-(displayln (is-dense?  D2)) ; = t
-(displayln (is-dense?  D4)) ; = t
+; (newline)
+; (displayln "test cases for type check/converting")
+; (newline)
+; (displayln "test case for is-dense?")
+; (displayln (is-dense?  EMPTY)) ; = f
+; (displayln (is-dense?  S0)) ; = f
+; (displayln (is-dense?  D0)) ; = t
+; (displayln (is-dense?  D1)) ; = t
+; (displayln (is-dense?  D2)) ; = t
+; (displayln (is-dense?  D4)) ; = t
 
-(newline)
-(displayln "test case for to-dense")
-(displayln (is-dense?(to-dense  EMPTY))) ; = t
-(displayln (to-dense  S0)) ; = 0
-(displayln (is-dense?(to-dense  S0))) ; = t
-(displayln (to-dense  D1)) ; = 1 + 1x
-(displayln (to-dense  S2)) ; =  (-4 -8 3 1)
-(displayln (to-dense  S4)) ; = '(-4 -8 3 1)
+; (newline)
+; (displayln "test case for to-dense")
+; (displayln (is-dense?(to-dense  EMPTY))) ; = t
+; (displayln (to-dense  S0)) ; = 0
+; (displayln (is-dense?(to-dense  S0))) ; = t
+; (displayln (to-dense  D1)) ; = 1 + 1x
+; (displayln (to-dense  S2)) ; =  (-4 -8 3 1)
+; (displayln (to-dense  S4)) ; = '(-4 -8 3 1)
 
-(newline)
-(displayln "test case for is-sparse?")
-(displayln (is-sparse?  EMPTY)) ; = f
-(displayln (is-sparse?  S0)) ; = f
-(displayln (is-sparse?  S0)) ; = t
-(displayln (is-sparse?  D1)) ; = f
-(displayln (is-sparse?  D2)) ; = f
-(displayln (is-sparse?  S4)) ; = t
+; (newline)
+; (displayln "test case for is-sparse?")
+; (displayln (is-sparse?  EMPTY)) ; = f
+; (displayln (is-sparse?  S0)) ; = f
+; (displayln (is-sparse?  S0)) ; = t
+; (displayln (is-sparse?  D1)) ; = f
+; (displayln (is-sparse?  D2)) ; = f
+; (displayln (is-sparse?  S4)) ; = t
 
-(newline)
-(displayln "test case for to-sparse")
-(displayln (to-sparse  EMPTY)) ; = 
-(displayln (to-sparse  S0)) ; = 
-(displayln (to-sparse  D3)) ; = 
-(displayln (to-sparse  D1)) ; = 
-(displayln (to-sparse  D2)) ; = 
-(displayln (to-sparse  S4)) ; = 
+; (newline)
+; (displayln "test case for to-sparse")
+; (displayln (to-sparse  EMPTY)) ; = 
+; (displayln (to-sparse  S0)) ; = 
+; (displayln (to-sparse  D3)) ; = 
+; (displayln (to-sparse  D1)) ; = 
+; (displayln (to-sparse  D2)) ; = 
+; (displayln (to-sparse  S4)) ; = 
 
-(newline)
-(displayln "test case for is-zero")
-(displayln (is-zero?  EMPTY)) ; = t
-(displayln (is-zero?  S0)) ; = t
-(displayln (is-zero?  S1)) ; = f
-(displayln (is-zero?  S3)) ; = f
-(displayln (is-zero?  S4)) ; = f
-(displayln (is-zero?  D0))  ; = t
-(displayln (is-zero?  D1))   ; = f
-(displayln (is-zero?  D3))   ; = f
-(displayln (is-zero?  S4))   ; = f
+; (newline)
+; (displayln "test case for is-zero")
+; (displayln (is-zero?  EMPTY)) ; = t
+; (displayln (is-zero?  S0)) ; = t
+; (displayln (is-zero?  S1)) ; = f
+; (displayln (is-zero?  S3)) ; = f
+; (displayln (is-zero?  S4)) ; = f
+; (displayln (is-zero?  D0))  ; = t
+; (displayln (is-zero?  D1))   ; = f
+; (displayln (is-zero?  D3))   ; = f
+; (displayln (is-zero?  S4))   ; = f
 
-(newline)
-(displayln "test caseS for type math functions")
-(newline)
-(displayln "test case for coeff")
-(displayln (coeff  EMPTY 1)) ; = 0
-(displayln (coeff  S0 1)) ; = 0
-(displayln (coeff  D3 1)) ; =  2
-(displayln (coeff  S2 3)) ; = 0
-(displayln (coeff  D2 1)) ; = 4
-(displayln (coeff  S4 3)) ; =  4
+; (newline)
+; (displayln "test caseS for type math functions")
+; (newline)
+; (displayln "test case for coeff")
+; (displayln (coeff  EMPTY 1)) ; = 0
+; (displayln (coeff  S0 1)) ; = 0
+; (displayln (coeff  D3 1)) ; =  2
+; (displayln (coeff  S2 3)) ; = 0
+; (displayln (coeff  D2 1)) ; = 4
+; (displayln (coeff  S4 3)) ; =  4
 
-(newline)
-(displayln "test case for degree")
-(displayln (degree S0)) ; = -INF.0
-(displayln (degree S4)) ; = 3
-(displayln (degree D4)) ; = 3
-(displayln (degree D6)) ; = 4
-(displayln (degree D7)) ; = 2
-(displayln (degree S2)) ; = 3
-(displayln (degree S3)) ; = 2
+; (newline)
+; (displayln "test case for degree")
+; (displayln (degree S0)) ; = -INF.0
+; (displayln (degree S4)) ; = 3
+; (displayln (degree D4)) ; = 3
+; (displayln (degree D6)) ; = 4
+; (displayln (degree D7)) ; = 2
+; (displayln (degree S2)) ; = 3
+; (displayln (degree S3)) ; = 2
 
-(newline)
-(displayln "test case for eval")
-(displayln (eval S0 1)) ; = 0
-(displayln (eval S1 2)) ; = 3
-(displayln (eval S4 2)) ; = 34
-(displayln (eval D0 5)) ; = 0
-(displayln (eval D4 2)) ; = 34
-(displayln (eval D7 5)) ; = 20
+; (newline)
+; (displayln "test case for eval")
+; (displayln (eval S0 1)) ; = 0
+; (displayln (eval S1 2)) ; = 3
+; (displayln (eval S4 2)) ; = 34
+; (displayln (eval D0 5)) ; = 0
+; (displayln (eval D4 2)) ; = 34
+; (displayln (eval D7 5)) ; = 20
 
-(newline)
-(displayln "test case for add")
-(displayln (add EMPTY EMPTY)) ; = (0 0)
-(displayln (add S0 EMPTY)) ; = (0 0)
-(displayln (add S1 S1)) ; = ((2 0) (2 1))
-(displayln (add S1 D1)) ; = (2 2)
-(displayln (add D2 D3)) ; = (0 6 7 2)
-(displayln (add S2 S3)) ; = ((6 1) (7 2) (2 3))
+; (newline)
+; (displayln "test case for add")
+; (displayln (add EMPTY EMPTY)) ; = (0 0)
+; (displayln (add S0 EMPTY)) ; = (0 0)
+; (displayln (add S1 S1)) ; = ((2 0) (2 1))
+; (displayln (add S1 D1)) ; = (2 2)
+; (displayln (add D2 D3)) ; = (0 6 7 2)
+; (displayln (add S2 S3)) ; = ((6 1) (7 2) (2 3))
 
-(newline)
-(displayln "test case for subtract")
-(displayln (subtract EMPTY EMPTY)) ; = (0)
-(displayln (subtract S0 EMPTY)) ; = (0 0)
-(displayln (subtract S1 S1)) ; = ()
-(displayln (subtract S1 D1)) ; = (0)
-(displayln (subtract D2 D3)) ; = (0 6 7 2)
-(displayln (subtract S2 S3)) ; = ((6 1) (7 2) (2 3))
+; (newline)
+; (displayln "test case for subtract")
+; (displayln (subtract EMPTY EMPTY)) ; = (0)
+; (displayln (subtract S0 EMPTY)) ; = (0 0)
+; (displayln (subtract S1 S1)) ; = ()
+; (displayln (subtract S1 D1)) ; = (0)
+; (displayln (subtract D2 D3)) ; = (0 6 7 2)
+; (displayln (subtract S2 S3)) ; = ((6 1) (7 2) (2 3))
 
-(newline)
-(displayln "test case for multiply")
-(displayln (multiply  EMPTY EMPTY)) ; = (0)
-(displayln (multiply  S0 S1)) ; = (0) / ((1 0) (1 1))
-(displayln (multiply  S1 S2)) ; = ((4 1) (10 2) (8 3) (2 4))
-(displayln (multiply  S3 S2)) ; = ((8 2) (16 3) (10 4) (2 5))
-(displayln (multiply  S4 S2)) ; = ((16 1) (36 2) (34 3) (34 4) (28 5) (8 6))
-(displayln (multiply   D0 D1))  ; = (0)
-(displayln (multiply  D1 D2))   ; = (0 4 10 8 2)
-(displayln (multiply  D3 D2))   ; = (0 8 16 10 2)
-(displayln (multiply  S4 D2))   ; = (0 16 36 34 34 28 8)
+; (newline)
+; (displayln "test case for multiply")
+; (displayln (multiply  EMPTY EMPTY)) ; = (0)
+; (displayln (multiply  S0 S1)) ; = (0) / ((1 0) (1 1))
+; (displayln (multiply  S1 S2)) ; = ((4 1) (10 2) (8 3) (2 4))
+; (displayln (multiply  S3 S2)) ; = ((8 2) (16 3) (10 4) (2 5))
+; (displayln (multiply  S4 S2)) ; = ((16 1) (36 2) (34 3) (34 4) (28 5) (8 6))
+; (displayln (multiply  D0 D1))  ; = (0)
+; (displayln (multiply  D1 D2))   ; = (0 4 10 8 2)
+; (displayln (multiply  D3 D2))   ; = (0 8 16 10 2)
+; (displayln (multiply  S4 D2))   ; = (0 16 36 34 34 28 8)
 
 ; (newline)
 ; (displayln "test case for quotient")
@@ -559,34 +561,37 @@
 ; (displayln (quotient S2 S1)) ; = ((4 1) (2 2))
 ; (displayln (quotient S4 S2)) ; = (2 0)
 ; (displayln (quotient D1 D0)) ; = -inf.0
-; (displayln (quotient D3 D1)) ; = x + 1
-; (displayln (quotient D4 D5 )) ; = x^2 + 5x + 2
-; (displayln (quotient D6 D7)) ; = 3x^2 + 4x -1
+; (displayln (quotient D3 D1)) ; = (1 1)
+; (displayln (quotient D4 D5 )) ; = (2 5 1)
+; (displayln (quotient D6 D7)) ; = (-1 4 3)
+; (displayln (quotient S2 D1)) ; = (0 4 2)
 
 ; (newline)
 ; (displayln "test case for remainder")
 ; (displayln (remainder S0 S1)) ; = (0)
 ; (displayln (remainder S1 S0)) ; = -inf.0
+; (displayln (remainder S4 S2)) ; = ((4 0) (-5 1) (-10 2))
 ; (displayln (remainder D4 D5)) ; = (0)
 ; (displayln (remainder D6 D7)) ; = (-2 1)
+; (displayln (remainder D3 D1)) ; = (-1)
 ; (displayln (remainder S1 D1)) ; = (0)
-;add more tests
-
-(newline)
-(display "test case for derivative")
-(displayln (derivative EMPTY)) ; = ()
-(displayln (derivative S0)) ; = ()
-(displayln (derivative S1)) ; =((1 0))
-(displayln (derivative D1)) ; = (1)
-(displayln (derivative D7)) ; = (-2 2)
-(displayln (derivative D4)) ; = (-8 6 3)
-(displayln (derivative S4)) ; = ((3 0) (4 1) (12 2))
+; (displayln (remainder S2 D1)) ; = (0)
 
 ; (newline)
-; (displayln "test case for gcd")
+; (display "test case for derivative")
+; (displayln (derivative EMPTY)) ; = ()
+; (displayln (derivative S0)) ; = ()
+; (displayln (derivative S1)) ; =((1 0))
+; (displayln (derivative D1)) ; = (1)
+; (displayln (derivative D7)) ; = (-2 2)
+; (displayln (derivative D4)) ; = (-8 6 3)
+; (displayln (derivative S4)) ; = ((3 0) (4 1) (12 2))
 
-; (display (gcd S1 S2)) ; = 1 + 1x
-; (display (gcd S3 S2)) ; = 2x + 1x^2
-; (display (gcd '(6 5 1) '(6 7 1))) ; = x + 1 need a fix/make check
-
-;7x^3 + 6x^2 - 8x + 4 and q(x) = x^3 + x - 2.
+(newline)
+(displayln "test case for gcd")
+(displayln (gcd S0 S0)) ; = 0
+(displayln (gcd S1 S2)) ; = ((1 0) (1 1))
+(displayln (gcd S2 S3)) ; = ((2 1) (1 2))
+(displayln (gcd D1 D2)) ; = (1 1)
+(displayln (gcd D2 D3)) ; = (0 2 1)?
+(displayln (gcd D6 D7)) ; = 5?
