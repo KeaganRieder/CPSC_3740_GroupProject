@@ -245,7 +245,7 @@
 (define (apply-poly1-to-p2term poly1 poly2)
     ; check if the end of the polynomial poly1 ahs been reached
     (cond
-        ; check if y is empty
+        ; check if poly1 is empty
         ((empty? poly1) '())
         ;still not at end of polynomial so still able to apply y to poly1
         (else
@@ -257,7 +257,7 @@
     (if (> (length poly2) 1)
         ;check how many terms poly2 has left 
         ( if (> (length poly2) 2)
-            ; poly2 hsa mor ethen 2 terms reamining
+            ; poly2 hsa more ehen 2 terms reamining
             (append  (add (apply-poly1-to-p2term poly1 (car poly2)) (multiply-poly poly1 (cdr poly2)))) 
             ;poly2 has two terms left so apply current one and perform one more shift
             (append  (add (apply-poly1-to-p2term poly1 (car poly2)) (apply-poly1-to-p2term poly1 (cadr poly2))))
