@@ -287,7 +287,6 @@
 
 ; helper fucntion used by poly-div to divide to terms
 (define (div-terms term1 term2)
-
     (list (list
         (/ (car term1) (car term2)) ; divide term1 coef by term2 coef
         (- (cadr term1) (cadr term2)))) ; subtract term2 power from term1 power
@@ -296,9 +295,7 @@
 ; helper function used by quotient and get-remainder to divde poly1 by poly2
 ; following type checks and converting both to sparse if needed
 (define (poly-div poly1 poly2)
-
-    (cond
-            
+    (cond            
         ; check if degree of poly1 is less then poly2
         ; meaning that division is done
         ((< (degree (reverse poly1)) (degree (reverse poly2))) ; breaks in some cases 
